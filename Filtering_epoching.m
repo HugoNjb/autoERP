@@ -1,5 +1,6 @@
-%% Filtering, .mrk importation and epoching .bdf or .set
+%% autoERP 1
 
+%% Filtering, .mrk importation and epoching .bdf or .set
 % This script will permit you to filter .bdf or .set data, import new
 % markers based on .mrk files and epoching them based on set parameters.
 
@@ -11,7 +12,7 @@
 % files have the exact same name as your data file.
 
 % The output dataset will have the same folder structure than your selected
-% root folder.
+% root folder. 
 
 %% Authors
 
