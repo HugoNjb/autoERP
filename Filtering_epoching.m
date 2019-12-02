@@ -533,14 +533,15 @@ for sbj = 1:numel(FileList)
             % If no name mismatching
             if mrkname_error                        
                 % deleting the structure EEG.event
-                TEMPurevent = {EEG.event.urevent};
-                EEG = rmfield(EEG,'event');
+                EEG = rmfield(EEG,{'event','urevent'});
 
-                % Creating the new EEG.event structure based on the .mrk data
+                % Creating the new EEG.event and EEG.urevent structures based on the .mrk data
                 for row = 1:length(dataArray{1})
                     EEG.event(row).latency = str2num(cell2mat(dataArray{1}(row)))+Error_TF;
                     EEG.event(row).type    = str2num(cell2mat(dataArray{3}(row)));
-                    EEG.event(row).urevent = TEMPurevent{row}; % Placing back the urevent field in event field
+                    EEG.urevent(row).latency = str2num(cell2mat(dataArray{1}(row)))+Error_TF;
+                    EEG.urevent(row).type    = str2num(cell2mat(dataArray{3}(row)));
+                    EEG.event(row).urevent = row;
                 end
             end
 
