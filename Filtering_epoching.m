@@ -26,7 +26,7 @@
 
 %% --------------------- PRESS F5 -------------------- %%
 %% --------------------------------------------------- %%
-clear all; close all
+clear variables; close all
 %% ----------------- PARAMETERS ------------- %%
 
 % getting path of the script location
@@ -84,7 +84,6 @@ end
 % Displaying the final prompt
 PromptInputs = inputdlg(PromptInstructions,'Preprocessing parameters',1,PromptValues);
 
-
 % Parameters to save from the prompt
 extension = PromptInputs{1};
 if FILTER == 'Y' % If filtering
@@ -92,6 +91,17 @@ if FILTER == 'Y' % If filtering
     low = str2double(PromptInputs{3});
     high = str2double(PromptInputs{4});
     RSData = PromptInputs{5};
+    
+    % REGARDING BLINKER, DIDN'T WE DEFINE A PERCEPTUAL WINDOW SOMEWHERE ???
+    
+    % Add new prompt to decide which algorithm to use 
+    PromptAlgoInstruct= {['Since you want to filter, please answer to these questions by 1=YES or 0=NO regarding which algorithm to use:',...
+        newline 'A) Would you like to use CleanLine (sinusoidal noise, more efficient than low pass filtering)'],...
+    'B) Would you like to use ASR (non-sinusoidal high-variance bursts noise)',...
+    'C) Would you like to use BLINKER (eye blink detection and rejection of epochs containing blinks)'};
+    PromptAlgoValues = {'1','1','1'};
+    PromptAlgoInputs = inputdlg(PromptAlgoInstruct,'Which algorithm to use',1,PromptAlgoValues);
+    
 end
 
 if Epoch == 'Y' % If epoching
@@ -410,6 +420,7 @@ for sbj = 1:numel(FileList)
         %% Filtering
 
         if FILTER == 'Y'
+            
             % Editing new channel location
             EEG.data = EEG.data(1:nbchan,:,:);
             EEG.nbchan = nbchan;
@@ -430,10 +441,13 @@ for sbj = 1:numel(FileList)
             EEG = pop_eegfiltnew(EEG,'locutoff',low, 'hicutoff',high);
 
             % Removing sinuosidal noise
-            EEG = pop_cleanline(EEG, 'SignalType','channels',...
-              'LineFrequencies', [ 50 100 ],'ComputeSpectralPower',false);
+            if str2double(PromptAlgoInputs{1}) == 1
+                EEG = pop_cleanline(EEG, 'SignalType','channels',...
+                  'LineFrequencies', [ 50 100 ],'ComputeSpectralPower',false);
+            end
           
-            if any(cellfun(@(x) ~isempty(x),StimDuration{1}))
+            if any(cellfun(@(x) ~isempty(x),StimDuration{1})) && ...
+                    str2double(PromptAlgoInputs{3}) == 1
                 % Introducing new algorithm for eye blinks detection and
                 % removal using BLINKER:
                 % https://www.ncbi.nlm.nih.gov/pubmed/28217081          
@@ -452,51 +466,55 @@ for sbj = 1:numel(FileList)
                     warning('No blinks were detected')
                 end
             end
-            %% 
-          
-            % ASR : Non-stationary artifacts removal
-            EEG = clean_rawdata(EEG, -1, -1, -1, -1, 10, -1); 
-            %% NEW (27.09.2019)
-%             
-%             % ASR settings
-%             asr_windowlen = max(0.5,1.5*EEG.nbchan/EEG.srate);
-%             BurstCriterion = 10;
-%             asr_stepsize = [];
-%             maxdims = 1;
-%             availableRAM_GB = [];
-%             usegpu = false;
-%             
-%             % TESTS :
-%             rsEEG = clean_rawdata(rsEEG, -1, -1, -1, -1, 10, -1); 
-%             TEMPEEG = EEG;
-%            
-%             % Creating a clean reference section (based on resting data)
-%             EEGCleanRef = clean_windows(rsEEG,0.075,[-3.5 5.5],1);   
-%             
-%             % Calibrate on the reference data
-%             state = asr_calibrate(EEGCleanRef.data, EEGCleanRef.srate,...
-%                 BurstCriterion, [], [], [], [], [], [], [], 'availableRAM_GB', availableRAM_GB);
-%             
-%             % Extrapolate last few samples of the signal
-%             sig = [EEG.data bsxfun(@minus,2*EEG.data(:,end),...
-%                 EEG.data(:,(end-1):-1:end-round(asr_windowlen/2*EEG.srate)))];
-%             
-%             % Process signal using ASR
-%             [TEMPEEG.data,state] = asr_process(sig,EEG.srate,state,...
-%                 asr_windowlen,asr_windowlen/2,asr_stepsize,maxdims,availableRAM_GB,usegpu);
-%             
-%             % Shift signal content back (to compensate for processing delay)
-%             TEMPEEG.data(:,1:size(state.carry,2)) = [];
-%             
-%             % Comparing the old and new data
-%             plot(TEMPEEG.data(1,:))
-%             hold on; plot(EEG.data(1,:)); hold off
-%             legend('WithASR','WithoutASR')
-% %             
-%             % Comparing the old (with blinks) and new (without blinks) data
-%             vis_artifacts(TEMPEEG,EEG);
-%             EEG.data = TEMPEEG.data;
             
+            %% Artifact Subspace Reconstruction
+            % ASR : Non-stationary artifacts removal
+            if str2double(PromptAlgoInputs{2}) == 1
+                EEG = clean_rawdata(EEG, -1, -1, -1, -1, 10, -1); 
+                %% NEW (27.09.2019) --> TO DO !!! 
+                % The idea is to use the loaded resting-state files to use
+                % them to build the clean reference for ASR interpolation
+                % of artifacts (on the ERP files). 
+    %             
+    %             % ASR settings
+    %             asr_windowlen = max(0.5,1.5*EEG.nbchan/EEG.srate);
+    %             BurstCriterion = 10;
+    %             asr_stepsize = [];
+    %             maxdims = 1;
+    %             availableRAM_GB = [];
+    %             usegpu = false;
+    %             
+    %             % TESTS :
+    %             rsEEG = clean_rawdata(rsEEG, -1, -1, -1, -1, 10, -1); 
+    %             TEMPEEG = EEG;
+    %            
+    %             % Creating a clean reference section (based on resting data)
+    %             EEGCleanRef = clean_windows(rsEEG,0.075,[-3.5 5.5],1);   
+    %             
+    %             % Calibrate on the reference data
+    %             state = asr_calibrate(EEGCleanRef.data, EEGCleanRef.srate,...
+    %                 BurstCriterion, [], [], [], [], [], [], [], 'availableRAM_GB', availableRAM_GB);
+    %             
+    %             % Extrapolate last few samples of the signal
+    %             sig = [EEG.data bsxfun(@minus,2*EEG.data(:,end),...
+    %                 EEG.data(:,(end-1):-1:end-round(asr_windowlen/2*EEG.srate)))];
+    %             
+    %             % Process signal using ASR
+    %             [TEMPEEG.data,state] = asr_process(sig,EEG.srate,state,...
+    %                 asr_windowlen,asr_windowlen/2,asr_stepsize,maxdims,availableRAM_GB,usegpu);
+    %             
+    %             % Shift signal content back (to compensate for processing delay)
+    %             TEMPEEG.data(:,1:size(state.carry,2)) = [];
+    %             
+    %             % Comparing the old and new data
+    %             plot(TEMPEEG.data(1,:))
+    %             hold on; plot(EEG.data(1,:)); hold off
+    %             legend('WithASR','WithoutASR')
+    % %             
+    %             % Comparing the old (with blinks) and new (without blinks) data
+    %             vis_artifacts(TEMPEEG,EEG);
+    %             EEG.data = TEMPEEG.data;
+            end
             %%
 
             % if there is a filtering but no mrk importation
@@ -557,7 +575,8 @@ for sbj = 1:numel(FileList)
             end                  
         end
         
-        if any(cellfun(@(x) ~isempty(x),StimDuration{1}))
+        if any(cellfun(@(x) ~isempty(x),StimDuration{1})) && ...
+                str2double(PromptAlgoInputs{3}) == 1
             % Add the blinks to EEG.event
             EEG = addBlinkEvents(EEG, blinks, blinkFits, blinkProperties, Params.fieldList);
         end
@@ -647,7 +666,8 @@ for sbj = 1:numel(FileList)
                 EEG = pop_epoch(EEG, toepoch, interval2);
                 
                 % This is only applied if stim duration provided
-                if any(cellfun(@(x) ~isempty(x),StimDuration{1}))
+                if any(cellfun(@(x) ~isempty(x),StimDuration{1})) && ...
+                    str2double(PromptAlgoInputs{3}) == 1
                     
                     % Rejecting epochs containing blinks inside the simulus
                     % duration window
@@ -698,7 +718,7 @@ for sbj = 1:numel(FileList)
                     end
                 end
 
-                % ine correction
+                % Baseline correction
                 EEG = pop_rmbase(EEG, [], []);
 
                 % save epoched .set
