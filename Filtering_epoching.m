@@ -92,16 +92,13 @@ if FILTER == 'Y' % If filtering
     high = str2double(PromptInputs{4});
     RSData = PromptInputs{5};
     
-    % REGARDING BLINKER, DIDN'T WE DEFINE A PERCEPTUAL WINDOW SOMEWHERE ???
-    
     % Add new prompt to decide which algorithm to use 
-    PromptAlgoInstruct= {['Since you want to filter, please answer to these questions by 1=YES or 0=NO regarding which algorithm to use:',...
-        newline 'A) Would you like to use CleanLine (sinusoidal noise, more efficient than low pass filtering)'],...
-    'B) Would you like to use ASR (non-sinusoidal high-variance bursts noise)',...
-    'C) Would you like to use BLINKER (eye blink detection and rejection of epochs containing blinks)'};
-    PromptAlgoValues = {'1','1','1'};
-    PromptAlgoInputs = inputdlg(PromptAlgoInstruct,'Which algorithm to use',1,PromptAlgoValues);
-    
+    PromptAlgoInstruct= {['Would you like to use...' newline,...
+        newline 'CleanLine (efficient filtering of sinusoidal noise)'],...
+    'ASR (interpolation of non-sinusoidal high-variance bursts )',...
+    'BLINKER (eye blink detection and rejection of epochs containing blinks)'};
+    PromptAlgoValues = {'y','y','y'};
+    PromptAlgoInputs = inputdlg(PromptAlgoInstruct,'Advanced filtering options',1,PromptAlgoValues);   
 end
 
 if Epoch == 'Y' % If epoching
@@ -441,13 +438,13 @@ for sbj = 1:numel(FileList)
             EEG = pop_eegfiltnew(EEG,'locutoff',low, 'hicutoff',high);
 
             % Removing sinuosidal noise
-            if str2double(PromptAlgoInputs{1}) == 1
+            if strcmpi(PromptAlgoInputs{1},'Y')
                 EEG = pop_cleanline(EEG, 'SignalType','channels',...
                   'LineFrequencies', [ 50 100 ],'ComputeSpectralPower',false);
             end
           
             if any(cellfun(@(x) ~isempty(x),StimDuration{1})) && ...
-                    str2double(PromptAlgoInputs{3}) == 1
+                    strcmpi(PromptAlgoInputs{3},'Y')
                 % Introducing new algorithm for eye blinks detection and
                 % removal using BLINKER:
                 % https://www.ncbi.nlm.nih.gov/pubmed/28217081          
@@ -469,7 +466,7 @@ for sbj = 1:numel(FileList)
             
             %% Artifact Subspace Reconstruction
             % ASR : Non-stationary artifacts removal
-            if str2double(PromptAlgoInputs{2}) == 1
+            if strcmpi(PromptAlgoInputs{2},'Y')
                 EEG = clean_rawdata(EEG, -1, -1, -1, -1, 10, -1); 
                 %% NEW (27.09.2019) --> TO DO !!! 
                 % The idea is to use the loaded resting-state files to use
@@ -576,7 +573,7 @@ for sbj = 1:numel(FileList)
         end
         
         if any(cellfun(@(x) ~isempty(x),StimDuration{1})) && ...
-                str2double(PromptAlgoInputs{3}) == 1
+                strcmpi(PromptAlgoInputs{3},'Y')
             % Add the blinks to EEG.event
             EEG = addBlinkEvents(EEG, blinks, blinkFits, blinkProperties, Params.fieldList);
         end
@@ -667,7 +664,7 @@ for sbj = 1:numel(FileList)
                 
                 % This is only applied if stim duration provided
                 if any(cellfun(@(x) ~isempty(x),StimDuration{1})) && ...
-                    str2double(PromptAlgoInputs{3}) == 1
+                    strcmpi(PromptAlgoInputs{3},'Y')
                     
                     % Rejecting epochs containing blinks inside the simulus
                     % duration window
