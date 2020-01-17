@@ -2,11 +2,22 @@
    This script filters, implements .mrk and epochs .bdf or .set
    You can create and save your epoching parameters in a .mat file to re-load it in a future use of this script.
 
+Order of actions:
+1. Re-reference
+2. Bandpass filtering
+3. Remove sinusoidal noise (CleanLine)
+4. Detect blinks
+5. ASR filtering
+6. Remove the detected blinks in 4.
+7. Baseline correction
+
+
 2) comp_ICA.m
    After having manually computed ICA, you can load the concerned .set to choose the components you want to remove.
    For each folder, you will have the topography of the component, the scroll of their activation and the full eeg data scroll to take your decision.
    ! This decision is asked only once per subfolder !
    -> After rejecting the components, you can epoch them wihout filtering them with the Filter_epoching.m script with your saved epoching parameters.
+
 
 3) ERPs.m
    Reject artefact on a 80uV criterion while ignoring bad channels, create the ERP based on averaging parameters and then interpolate the bad channels.

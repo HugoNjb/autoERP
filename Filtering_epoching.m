@@ -63,16 +63,32 @@ PromptInstructions = {'Enter the suffix and extension of your data (.bdf or XXX.
 
 PromptValues = {'.bdf','filtered','0.5','40','N','epoched','-100 700','1024','64',''};
 
+
+% Optionnal algorithms decision
+PromptAlgoInstruct= {['Would you like to use... [Y/N]' newline,...
+    newline 'CleanLine (efficient filtering of sinusoidal noise)'],...
+'ASR (interpolation of non-sinusoidal high-variance bursts )',...
+'BLINKER (eye blink detection and rejection of epochs containing blinks)',...
+'Baseline correction',...
+'Enter the interval for baseline correction (in ms). Empty if whole epoch range.'};
+
+PromptAlgoValues = {'Y','Y','Y','Y','-100 700'};
+  
+
 % If user doesn't want to filter, remove the associated lines
 if FILTER ~= 'Y'
     PromptInstructions(2:5) = [];
     PromptValues(2:5) = [];
+    PromptAlgoInstruct(1:2) = [];
+    PromptAlgoValues(1:2) = [];
 end
 
 % If user doesn't want to epoch, remove the associated lines
 if Epoch ~= 'Y'
     PromptInstructions(end-4:end-2) = [];
     PromptValues(end-4:end-2) = [];
+    PromptAlgoInstruct(end-2:end) = [];
+    PromptAlgoValues(end-2:end) = [];
 end
 
 % If user doesn't want to import mrk, remove the associated lines
@@ -81,24 +97,21 @@ if ImportMRK ~= 'Y'
     PromptValues(end) = [];
 end
 
-% Displaying the final prompt
-PromptInputs = inputdlg(PromptInstructions,'Preprocessing parameters',1,PromptValues);
 
-% Parameters to save from the prompt
+% Displaying the final prompts
+PromptInputs = inputdlg(PromptInstructions,'Preprocessing parameters',1,PromptValues);
+PromptAlgoInputs = inputdlg(PromptAlgoInstruct,'Optionnal algorithms options',1,PromptAlgoValues); 
+
+
+% Parameters to save from the prompts
 extension = PromptInputs{1};
 if FILTER == 'Y' % If filtering
     filtered_suffix = PromptInputs{2};
     low = str2double(PromptInputs{3});
     high = str2double(PromptInputs{4});
     RSData = PromptInputs{5};
-    
-    % Add new prompt to decide which algorithm to use 
-    PromptAlgoInstruct= {['Would you like to use...' newline,...
-        newline 'CleanLine (efficient filtering of sinusoidal noise)'],...
-    'ASR (interpolation of non-sinusoidal high-variance bursts )',...
-    'BLINKER (eye blink detection and rejection of epochs containing blinks)'};
-    PromptAlgoValues = {'y','y','y'};
-    PromptAlgoInputs = inputdlg(PromptAlgoInstruct,'Advanced filtering options',1,PromptAlgoValues);   
+    bool_CleanLine = PromptAlgoInputs{1};
+    bool_ASR = PromptAlgoInputs{2};
 end
 
 if Epoch == 'Y' % If epoching
@@ -107,6 +120,9 @@ if Epoch == 'Y' % If epoching
     sr = str2double(PromptInputs{end-2});
     % Conversion from ms to TimeFrames according to sampling rate
     interval=round(interval/(1/sr*1000));
+    bool_Blinker = PromptAlgoInputs{end-2};
+    bool_Basecorr = PromptAlgoInputs{end-1};
+    interval_basecorr = str2num(PromptAlgoInputs{end});
 end
 
 % Converting the Error in ms for the log and TF for the structure
@@ -236,13 +252,13 @@ if Epoch == 'Y'
             cond_name = CondList{cond};   
             text_uiCond = {['1) Enter the marker IDs of the ' cond_name ' condition as they appear in the .mrk file'],...
                 '2) Enter new names for your markers (optionnal)',...
-                '3) Enter the stimulus duration (in ms) [leave empty if you do not want to reject epochs containing eye blinks]',...
+                '3) Enter the stimulus duration (in ms) (leave empty if you do not want to reject epochs containing eye blinks)',...
                 '4) Around which markers do you want to epoch ?', newline, ...
                 'Let 1), 2) & 4) empty if you want to epoch around every trigger'};
         else
             text_uiCond = {'1) Enter the marker IDs as they appear in the .mrk file',...
                 '2) Enter new names for your markers (optionnal)',...
-                '3) Enter the stimulus duration (in ms) [leave empty if you do not want to reject epochs containing eye blinks]',...
+                '3) Enter the stimulus duration (in ms) (leave empty if you do not want reject epochs containing eye blinks)',...
                 '4) Around which markers do you want to epoch ?',newline ...
                 'Let 1), 2) & 4) empty if you want to epoch around every trigger'};
         end
@@ -311,7 +327,7 @@ if Epoch == 'Y'
         CondList = Epoch_Parameters.CondList;
         allnewtrigg = Epoch_Parameters.newtrigg;
         alltrigg = Epoch_Parameters.trigg;
-        StimDuration = Epoch_Parameters.StimDuration;
+        allStimDuration = Epoch_Parameters.StimDuration;
         alltoepoch = Epoch_Parameters.toepoch;
     end
 end
@@ -427,7 +443,7 @@ for sbj = 1:numel(FileList)
             % ERP file
             EEG = pop_reref(EEG,ref_chan);
             
-            if strcmp(RSData,'Y')
+            if strcmpi(RSData,'Y')
                 % Resting-state file (may be unnecessary)
                 rsEEG = pop_chanedit(rsEEG, 'load',{chanloc_path 'filetype' 'autodetect'});
                 % Resting-state file (may be unnecessary)
@@ -438,35 +454,14 @@ for sbj = 1:numel(FileList)
             EEG = pop_eegfiltnew(EEG,'locutoff',low, 'hicutoff',high);
 
             % Removing sinuosidal noise
-            if strcmpi(PromptAlgoInputs{1},'Y')
+            if strcmpi(bool_CleanLine,'Y')
                 EEG = pop_cleanline(EEG, 'SignalType','channels',...
                   'LineFrequencies', [ 50 100 ],'ComputeSpectralPower',false);
-            end
-          
-            if any(cellfun(@(x) ~isempty(x),StimDuration{1})) && ...
-                    strcmpi(PromptAlgoInputs{3},'Y')
-                % Introducing new algorithm for eye blinks detection and
-                % removal using BLINKER:
-                % https://www.ncbi.nlm.nih.gov/pubmed/28217081          
-                Params = checkBlinkerDefaults(struct(), getBlinkerDefaults(EEG));
-                Params.fileName = FileName;
-                SplitFileName = strsplit(FileName,'.');
-                Params.blinkerSaveFile = [SplitFileName{1} '_blinks.mat'];
-                Params.showMaxDistribution = false;
-                Params.verbose = false;
-                Params.fieldList = {'leftBase','rightBase'}; % 'maxFrame', 'leftZero', 'rightZero', 'leftZeroHalfHeight', 'rightZeroHalfHeight'
-
-                % Run BLINKER algorithm
-                try
-                    [EEG, ~, blinks, blinkFits, blinkProperties, ~, ~] = pop_blinker(EEG, Params);
-                catch
-                    warning('No blink were detected')
-                end
             end
             
             %% Artifact Subspace Reconstruction
             % ASR : Non-stationary artifacts removal
-            if strcmpi(PromptAlgoInputs{2},'Y')
+            if strcmpi(bool_ASR,'Y')
                 EEG = clean_rawdata(EEG, -1, -1, -1, -1, 10, -1); 
                 %% NEW (27.09.2019) --> TO DO !!! 
                 % The idea is to use the loaded resting-state files to use
@@ -570,21 +565,6 @@ for sbj = 1:numel(FileList)
                 pop_saveset(EEG,NewFileNamef)
             end                  
         end
-        
-        if any(cellfun(@(x) ~isempty(x),StimDuration{1})) && ...
-                strcmpi(PromptAlgoInputs{3},'Y')
-            % Add the blinks to EEG.event
-            EEG = addBlinkEvents(EEG, blinks, blinkFits, blinkProperties, Params.fieldList);
-        end
-        
-        % Plotting for visual inspection
-%         TEMPEEG = EEG;
-%         for f=1:length(TEMPEEG.event)
-%             if isnumeric(TEMPEEG.event(f).type)
-%                 TEMPEEG.event(f).type = num2str(TEMPEEG.event(f).type);
-%             end
-%         end
-%         eegplot(TEMPEEG.data,'winlength',30,'events',TEMPEEG.event); 
 
         %% EPOCHING
 
@@ -655,70 +635,110 @@ for sbj = 1:numel(FileList)
 
                 toepoch = toepoch';
 
-                %% Epocher pour de vrai cette fois
+                %% Blinker detection on continuous file
+                
+                StimDuration = allStimDuration{I};
+                
+                % This is only applied if stim duration provided
+                if any(cellfun(@(x) ~isempty(x),StimDuration)) && ...
+                    strcmpi(bool_Blinker,'Y')
+
+                    % Introducing new algorithm for eye blinks detection and
+                    % removal using BLINKER:
+                    % https://www.ncbi.nlm.nih.gov/pubmed/28217081          
+                    Params = checkBlinkerDefaults(struct(), getBlinkerDefaults(EEG));
+                    Params.fileName = FileName;
+                    SplitFileName = strsplit(FileName,'.');
+                    Params.blinkerSaveFile = [pwd '\blinks.mat'];
+                    Params.showMaxDistribution = false;
+                    Params.verbose = false;
+                    Params.fieldList = {'leftBase','rightBase'}; % 'maxFrame', 'leftZero', 'rightZero', 'leftZeroHalfHeight', 'rightZeroHalfHeight'
+
+                    % Run BLINKER algorithm
+                    try
+                        [EEG, ~, blinks, blinkFits, blinkProperties, ~, ~] = pop_blinker(EEG, Params);
+                    catch
+                        warning('No blink were detected')
+                    end
+                    
+                    % Add the blinks to EEG.event
+                    EEG = addBlinkEvents(EEG, blinks, blinkFits, blinkProperties, Params.fieldList);
+                    
+                end
+                
+                    
+                %% Epoching for real
 
                 % epoching on this interval
                 interval2 = interval*(1/sr);
                 EEG = pop_epoch(EEG, toepoch, interval2);
                 
+                %% Last optionnal algorithms (BLINKER / Basecorr)
+                
+                StimDuration = allStimDuration{I};
+                
                 % This is only applied if stim duration provided
-                if any(cellfun(@(x) ~isempty(x),StimDuration{1})) && ...
-                    strcmpi(PromptAlgoInputs{3},'Y')
-                    
+                if any(cellfun(@(x) ~isempty(x),StimDuration)) && ...
+                    strcmpi(bool_Blinker,'Y')
+
                     % Rejecting epochs containing blinks inside the simulus
                     % duration window
                     type = {EEG.event.type};
                     latency = cell2mat({EEG.event.latency});
                     epochs = cell2mat({EEG.event.epoch});
                     ToReject = [];
-                    
+                                       
                     for t=1:length(EEG.event)
 
                         % Check if the marker shares one value with the ones 
                         % entered in the table before
-                        Index = find(ismember(NewMarkers,type{t}));
-
+                        Index_NewMarkers = find(ismember(NewMarkers,type{t}));
+                        Index_Events = find(ismember(Events,type{t}));
+                        Index = [Index_NewMarkers Index_Events]; %take into consideration both col names (old and new markers)
+                        
                         % Index of triggers in the same epoch
                         IdxEpochs = epochs == EEG.event(t).epoch;
 
                         % For each epoch
                         if ~isempty(Index) && nnz(IdxEpochs)>1
-
-                            % Detect if blink triggers inside the stim duration
-                            Blinks = 0;
-                            IdxWindow = latency<=EEG.event(t).latency+str2double(StimDuration{1}{Index});
-                            IdxWindowFind = find(IdxWindow);
+        
+                            % create an interval inside the stim duration where an eye blink shouldn't be
+                            IdxWindow = (EEG.event(t).latency < latency) & (latency <= EEG.event(t).latency+str2double(StimDuration{Index}));
+                            IdxWindow = find(IdxWindow); % event(s) inside the interval of interest
                             
-                            for f = 1:length(IdxWindowFind)
-                                if nnz(ismember(Params.fieldList,type{IdxWindowFind(f)}))
-                                    ToReject = [ToReject EEG.event(t).epoch];
+                            % for each of these events inside the interval, see if it's about an eye blink (leftbase / rightbase)
+                            for nn = 1:length(IdxWindow)
+                                if any(ismember(Params.fieldList,type{IdxWindow(nn)}))
+                                    ToReject = [ToReject EEG.event(t).epoch]; % append epochs containing blinks
                                     break
                                 end
-                            end
+                            end                      
                         end
                     end
                     
-                    % eegplot(EEG.data,'events',EEG.event); 
+                    % Reject using pop_rejepoch the flagged epochs
                     Alltrials{sbj} = EEG.trials;
                     EEGtrialsReject = zeros(1,EEG.trials);
                     EEGtrialsReject(ToReject) = 1;
                     EEG = pop_rejepoch( EEG, EEGtrialsReject ,0);
                     StoredRejectEpochs{sbj} = ToReject;
                     
-                    % Remove remaining events generated by BLINKER
+                    % Remove remaining the events generated by BLINKER (left/rightbase)
                     type = {EEG.event.type};
                     for t=1:length(EEG.event)
                         Index = find(ismember(Params.fieldList,type{t}));
                         if ~isempty(Index)
-                            EEG.event(t).type = [];
+                            EEG.event(t) = [];
                         end
                     end
                 end
 
-                % Baseline correction
-                EEG = pop_rmbase(EEG, [], []);
+                %% Baseline correction
+                if strcmpi(bool_Basecorr,'Y')
+                    EEG = pop_rmbase(EEG, interval_basecorr);
+                end
 
-                % save epoched .set
+                %% save epoched .set
                 pop_saveset(EEG,NewFileNamee)
             end
         end
@@ -753,7 +773,12 @@ end
 if FILTER == 'Y'
     fprintf(fid,'\r\n%s\r\n','------ Filtering parameters ------');
     fprintf(fid,'%s\r\n%s\r\n',['Files suffix: ',filtered_suffix],['Bandpass filtering: ',mat2str(low),'Hz - ',mat2str(high),'Hz']);
-    fprintf(fid,'%s\r\n','Sinusoidal noise was treated at 50 and 100 Hz and an ASR was computed.');
+    if strcmpi(bool_CleanLine,'Y')
+        fprintf(fid,'%s\r\n','Sinusoidal noise was treated at 50 and 100 Hz with CleanLine.');
+    end
+    if strcmpi(bool_ASR,'Y')
+        fprintf(fid,'%s\r\n','ASR was computed.');
+    end
 end
 
 
@@ -795,17 +820,26 @@ if Epoch == 'Y'
     else
         fprintf(fid,'\r\n%s\r\n\t','Epochs have been created around every triggers');        
     end
-end
-
-% eye blinks rejection
-if any(cellfun(@(x) ~isempty(x),StimDuration{1}))
-    fprintf(fid,'\r\n%s\r\n','------ Eye blinks rejection ------');
-    fprintf(fid,'\r\n%s\r\n','This is a summary of the number of epochs',...
-        'that were rejected by the BLINKER algorithm for containing eye blinks.');   
-    for k=1:length(FileList)
-        fprintf(fid,'\r\n%s\r\n',sprintf('%d) %s: %d/%d epochs rejected',k,...
-            FileList(k).name,length(StoredRejectEpochs{k}),Alltrials{k}));
+    
+    if strcmpi(bool_Basecorr,'Y')
+        if isempty(interval_basecorr)
+            fprintf(fid,'\r\n%s\r\n','Baseline correction range: whole window');
+        else        
+            fprintf(fid,'\r\n%s\r\n',['Baseline correction range: ' mat2str(interval_basecorr) ' (ms).']);
+        end
     end
+    
+    if strcmpi(bool_Blinker,'Y')
+        fprintf(fid,'\r\n%s\r\n','------ Eye blinks rejection ------');
+        fprintf(fid,'\r\n%s\r\n','This is a summary of the number of epochs that were rejected by the BLINKER algorithm for containing eye blinks during the stimulus presentation.');   
+        for k=1:length(FileList)
+            if ~isempty(StoredRejectEpochs{k})
+                fprintf(fid,'\r\n%s\r\n',sprintf('%d) %s: %d/%d epochs rejected',k,...
+                     FileList(k).name,length(StoredRejectEpochs{k}),Alltrials{k}));
+            end
+        end
+    end
+    
 end
 
 fclose(fid);
