@@ -403,7 +403,7 @@ for sbj = 1:numel(FileList)
             EEG = pop_loadset(FileName);
             if strcmp(RSData,'Y')
                 % Resting-state file
-                rsEEG = pop_biosig([RSFileList(WhichRSPos).folder '\' ...
+                rsEEG = pop_loadset([RSFileList(WhichRSPos).folder '\' ...
                     RSFileList(WhichRSPos).name]);
             end
     end
@@ -460,7 +460,7 @@ for sbj = 1:numel(FileList)
                 try
                     [EEG, ~, blinks, blinkFits, blinkProperties, ~, ~] = pop_blinker(EEG, Params);
                 catch
-                    warning('No blinks were detected')
+                    warning('No blink were detected')
                 end
             end
             
@@ -512,9 +512,8 @@ for sbj = 1:numel(FileList)
     %             vis_artifacts(TEMPEEG,EEG);
     %             EEG.data = TEMPEEG.data;
             end
-            %%
-
-            % if there is a filtering but no mrk importation
+            
+            %% if there is a filtering but no mrk importation
             if (FILTER =='Y') && (ImportMRK ~= 'Y')
                 % Saving the filtered data
                 pop_saveset(EEG,NewFileNamef)
@@ -524,7 +523,7 @@ for sbj = 1:numel(FileList)
         %% Import mrk
 
         % Boolean to act if catching error later on
-        mrkname_error = 1;
+        mrkname_noerror = 1;
 
         if ImportMRK == 'Y'
 
@@ -540,13 +539,13 @@ for sbj = 1:numel(FileList)
                 dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'HeaderLines' ,startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');                        
                 fclose(fileID);
             catch
-                mrkname_error = 0;
+                mrkname_noerror = 0;
                 count_error = count_error +1;
                 error_log(count_error+1,1) = {filenameMRK};
             end
 
             % If no name mismatching
-            if mrkname_error                        
+            if mrkname_noerror                        
                 % deleting the structure EEG.event
                 EEG = rmfield(EEG,{'event','urevent'});
 
@@ -589,7 +588,7 @@ for sbj = 1:numel(FileList)
 
         %% EPOCHING
 
-        if Epoch == 'Y' && mrkname_error
+        if Epoch == 'Y' && mrkname_noerror
             %% Checking in which condition is the current file
 
             if ~isempty(CondList)
@@ -675,7 +674,7 @@ for sbj = 1:numel(FileList)
                     
                     for t=1:length(EEG.event)
 
-                        % Check if the marker shares one value with the the ones 
+                        % Check if the marker shares one value with the ones 
                         % entered in the table before
                         Index = find(ismember(NewMarkers,type{t}));
 
@@ -698,6 +697,7 @@ for sbj = 1:numel(FileList)
                             end
                         end
                     end
+                    
                     % eegplot(EEG.data,'events',EEG.event); 
                     Alltrials{sbj} = EEG.trials;
                     EEGtrialsReject = zeros(1,EEG.trials);

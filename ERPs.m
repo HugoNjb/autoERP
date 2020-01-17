@@ -722,7 +722,7 @@ for sbj = 1:sbj_high
 
             %% Putting the cleaned EEG structure inside allERPs again
             NEpochs(x) = size(EEG.data,3); % [to store]
-            allERPs{x} = EEG;            
+            allERPs{x} = EEG;
 
         end
 
