@@ -184,9 +184,14 @@ if upper(averaging_ans) ~= "Y"
         [nrows,~] = cellfun(@size,Epoch_Parameters.newtrigg);
         Lines = max(nrows);
 
+        % if empty condition list, add an empty cell        
+        if isempty(Epoch_Parameters.CondList)
+            Epoch_Parameters.CondList = {' '};
+        end
+        
         % Creating empty cells
         DisplayCells = cell([Lines length(Epoch_Parameters.CondList')]);
-
+        
         % Filling the empty cells with the triggers' name
         for f = 1:length(Epoch_Parameters.CondList)
             for g = 1:length(Epoch_Parameters.newtrigg{f})
@@ -865,7 +870,7 @@ if merge_ans == 'Y' && ~isempty(CondList)
 elseif merge_ans == 'Y' && isempty(CondList)
     fprintf(fid,'%s\r\n','The files in each subfolder were merged together');   
 elseif merge_ans ~= 'Y'
-    fprintf(fid,'%s\r\n','No merge was done ; all files were loaded independently');
+    fprintf(fid,'%s\r\n','No merging was done: all files were loaded independently');
 end
 
 % Data cleaning
@@ -892,6 +897,14 @@ if ~isempty(CondList)
             fprintf(fid,'\r\n');
         end       
     end
+else
+    for trigg = 1:size(allERPtriggList{1},2)
+        nb = length(allERPtriggList{1}(:,trigg));
+        fprintf(fid,'\t%s',[num2str(trigg) ') ']);
+        fprintf(fid,'%s', allERPtriggList{1}{1,trigg});
+        fprintf(fid, repmat(' + %s ',[1 nb-1]) , allERPtriggList{1}{2:end,trigg});
+        fprintf(fid,'\r\n');
+    end   
 end
 
 % Interpolation
