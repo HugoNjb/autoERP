@@ -43,7 +43,7 @@ addpath(strcat(p2,'\Functions\eeglab14_1_2b'));
 
 % Ask what they want to do with their data (filtering / mrk importing / epoching)
 answer = inputdlg({'Do you want to filter your data ? [Y/N]','Do you want to import .mrk ? [Y/N]',...
-    'Do you want to epoch your data ? [Y/N]','Do you already have set up epoching parameters ? [Y/N]'},'Settings',1,{'y','y','y','n'});
+    'Do you want to epoch your data ? [Y/N]','Do you already have set up epoching parameters ? [Y/N]'},'Settings',1,{'Y','Y','Y','N'});
 FILTER    = upper(answer{1});
 ImportMRK = upper(answer{2});
 Epoch     = upper(answer{3});
@@ -54,14 +54,13 @@ resume    = upper(answer{4});
 PromptInstructions = {'Enter the suffix and extension of your data (.bdf or XXX.set):',...
     'Enter the  Suffixe of your new FILTERED dataset:',...
     'Lower edge of the frequency pass band (Hz):','Higher edge of the frequency pass band (Hz)',...
-    'Would you like to import individual resting-state data to be used as reference data in the ASR algorithm (recommended) [Y/N]',...
     'Enter the  Suffixe of your new EPOCHED dataset:',...
     'Enter the epoching interval (in ms)',...
     'Enter the sampling rate:', ...
     'How many channels do you work with ?',...
     'Would you add presentation triggers delay (in ms, optional) ?'};
 
-PromptValues = {'.bdf','filtered','0.5','40','N','epoched','-100 700','1024','64',''};
+PromptValues = {'.bdf','filtered','0.5','40','epoched','-100 700','1024','64',''};
 
 
 % Optionnal algorithms decision
@@ -73,12 +72,12 @@ PromptAlgoInstruct= {['Would you like to use... [Y/N]' newline,...
 'Enter the interval for baseline correction (in ms). Empty if whole epoch range.'};
 
 PromptAlgoValues = {'Y','Y','Y','Y','-100 700'};
-  
+ 
 
 % If user doesn't want to filter, remove the associated lines
 if FILTER ~= 'Y'
-    PromptInstructions(2:5) = [];
-    PromptValues(2:5) = [];
+    PromptInstructions(2:4) = [];
+    PromptValues(2:4) = [];
     PromptAlgoInstruct(1:2) = [];
     PromptAlgoValues(1:2) = [];
 end
@@ -97,11 +96,12 @@ if ImportMRK ~= 'Y'
     PromptValues(end) = [];
 end
 
-
 % Displaying the final prompts
 PromptInputs = inputdlg(PromptInstructions,'Preprocessing parameters',1,PromptValues);
 PromptAlgoInputs = inputdlg(PromptAlgoInstruct,'Optionnal algorithms options',1,PromptAlgoValues); 
 
+% Default value for a specific case
+PromptRSA = 'No';
 
 % Parameters to save from the prompts
 extension = PromptInputs{1};
@@ -109,9 +109,21 @@ if FILTER == 'Y' % If filtering
     filtered_suffix = PromptInputs{2};
     low = str2double(PromptInputs{3});
     high = str2double(PromptInputs{4});
-    RSData = PromptInputs{5};
     bool_CleanLine = PromptAlgoInputs{1};
     bool_ASR = PromptAlgoInputs{2};
+    
+%     % if ASR, asks if want to feed resting state data to the algo
+%     if strcmpi(bool_ASR,'Y')
+%         PromptRSA = questdlg('Would you like to import individual resting-state data to be used as reference data in the ASR algorithm ?', ...
+% 	                '','Yes','No','No');
+%                 
+%         % If yes, where is the data to feed ?
+%         if strcmp(PromptRSA,'Yes')             
+%             RSData_folder = uigetdir('title',...
+%                 'Choose the path of your most upper folder containing your PREPROCESSED resting-state files');
+%             RSFileList = dir([RSData_folder '\**\*' extension]);
+%         end
+%     end  
 end
 
 if Epoch == 'Y' % If epoching
@@ -119,7 +131,7 @@ if Epoch == 'Y' % If epoching
     interval = str2num(PromptInputs{end-3});
     sr = str2double(PromptInputs{end-2});
     % Conversion from ms to TimeFrames according to sampling rate
-    interval=round(interval/(1/sr*1000));
+    intervalTF = round(interval*sr/1000);
     bool_Blinker = PromptAlgoInputs{end-2};
     bool_Basecorr = PromptAlgoInputs{end-1};
     interval_basecorr = str2num(PromptAlgoInputs{end});
@@ -163,12 +175,7 @@ if strcmp(ImportMRK,'Y')
         'Choose the path of your most upper folder containing your .mrk files');
 end
 
-% Path of your resting-state files
-if strcmp(RSData,'Y')
-    RSData_folder = uigetdir('title',...
-        'Choose the path of your most upper folder containing your PREPROCESSED resting-state files');
-    RSFileList = dir([RSData_folder '/**/*' extension]);
-end
+
 
 % Path of the folder to save filtered and epoched .set
 save_folder = uigetdir('title',...
@@ -358,8 +365,7 @@ for sbj = 1:numel(FileList)
     %% Name shenanigans
     
     FileName = [FileList(sbj).folder,'\',FileList(sbj).name];
-    name = FileList(sbj).name;
-    name_noe = name(1:end-length(extension));
+    name_noe = FileList(sbj).name(1:end-length(extension));
     
     if name_noe(end) == '_'
        name_noe(end) = ''; 
@@ -385,21 +391,21 @@ for sbj = 1:numel(FileList)
         mkdir(NewPath);
     end
     
-    %% Finding resting-state file corresponding to current ERP file
-    if strcmp(RSData,'Y')
-        WhichRSPos = [];
-        SearchName = strsplit(SubPath,'\');
-        for m=1:numel(SearchName)
-            if ~isempty(SearchName{m})
-                if sum(contains({RSFileList.name},SearchName{m})>=1) % May contain more than 1 file
-                    WhichRSPos = [WhichRSPos find(contains({RSFileList.name},SearchName{m}))];
-                end
-            end
-        end
-
-        % Retrieving the corresponding file
-        WhichRSPos = mode(WhichRSPos); % find the most frequent value in array
-    end
+    %% Finding resting-state file corresponding to current ERP file ! WIP !
+%     if strcmp(PromptRSA,'Yes')
+%         WhichRSPos = [];
+%         SearchName = strsplit(SubPath,'\');
+%         for m=1:numel(SearchName)
+%             if ~isempty(SearchName{m})
+%                 if sum(contains({RSFileList.name},SearchName{m})>=1) % May contain more than 1 file
+%                     WhichRSPos = [WhichRSPos find(contains({RSFileList.name},SearchName{m}))];
+%                 end
+%             end
+%         end
+% 
+%         % Retrieving the corresponding file
+%         WhichRSPos = mode(WhichRSPos); % find the most frequent value in array
+%     end
 
     %% Loading .bdf or .set 
     
@@ -409,19 +415,20 @@ for sbj = 1:numel(FileList)
         case 'bdf'
             % ERP file
             EEG = pop_biosig(FileName,'channels',1:nbchan);
-            if strcmp(RSData,'Y')
-                % Resting-state file
-                rsEEG = pop_biosig([RSFileList(WhichRSPos).folder '\' ...
-                    RSFileList(WhichRSPos).name],'channels',1:nbchan);
-            end
+%             % Resting-state file to feed ASR
+%             if strcmp(PromptRSA,'Yes')                
+%                 rsEEG = pop_biosig([RSFileList(WhichRSPos).folder '\' ...
+%                     RSFileList(WhichRSPos).name],'channels',1:nbchan);
+%             end
+            
         case 'set'
             % ERP file
             EEG = pop_loadset(FileName);
-            if strcmp(RSData,'Y')
-                % Resting-state file
-                rsEEG = pop_loadset([RSFileList(WhichRSPos).folder '\' ...
-                    RSFileList(WhichRSPos).name]);
-            end
+%             % Resting-state file to feed ASR
+%             if strcmp(PromptRSA,'Yes')               
+%                 rsEEG = pop_loadset([RSFileList(WhichRSPos).folder '\' ...
+%                     RSFileList(WhichRSPos).name]);
+%             end
     end
         
     % Waitbar updating
@@ -437,18 +444,19 @@ for sbj = 1:numel(FileList)
             % Editing new channel location
             EEG.data = EEG.data(1:nbchan,:,:);
             EEG.nbchan = nbchan;
+            
             % ERP file
             EEG = pop_chanedit(EEG, 'load',{chanloc_path 'filetype' 'autodetect'});
+            
             % Re-referencing, because chanedit erase the information
-            % ERP file
             EEG = pop_reref(EEG,ref_chan);
             
-            if strcmpi(RSData,'Y')
-                % Resting-state file (may be unnecessary)
-                rsEEG = pop_chanedit(rsEEG, 'load',{chanloc_path 'filetype' 'autodetect'});
-                % Resting-state file (may be unnecessary)
-                rsEEG = pop_reref(rsEEG,ref_chan);
-            end
+%             if strcmpi(PromptRSA,'Y')
+%                 % Resting-state file (may be unnecessary)
+%                 rsEEG = pop_chanedit(rsEEG, 'load',{chanloc_path 'filetype' 'autodetect'});
+%                 % Resting-state file (may be unnecessary)
+%                 rsEEG = pop_reref(rsEEG,ref_chan);
+%             end
 
             % Bandpass filtering (0.5 - 40 by default)
             EEG = pop_eegfiltnew(EEG,'locutoff',low, 'hicutoff',high);
@@ -574,7 +582,7 @@ for sbj = 1:numel(FileList)
             if ~isempty(CondList)
                 % Matching each condition string pattern with the one in the file name
                 for i = 1:size(CondList,1)
-                    Condname_i(i) = length(strfind(upper(FileList(sbj).name),CondList{i}));
+                    Condname_i(i) = length(strfind(upper([SubPath '\' name_noe]),CondList{i}));
                 end
                 % Which condition is the most appropriated to this file
                 [~,I] = max(Condname_i);
@@ -584,8 +592,10 @@ for sbj = 1:numel(FileList)
 
             % If the condition was not found, do not epoch the file
             To_Epoch = 1;
-            if sum(Condname_i) == 0 && ~isempty(CondList)
-                To_Epoch = 0;
+            if ~isempty(CondList)
+                if sum(Condname_i) == 0
+                    To_Epoch = 0;
+                end
             end
 
             %% Assigning new marker name
@@ -657,21 +667,15 @@ for sbj = 1:numel(FileList)
                     % Run BLINKER algorithm
                     try
                         [EEG, ~, blinks, blinkFits, blinkProperties, ~, ~] = pop_blinker(EEG, Params);
-                    catch
-                        warning('No blink were detected')
+                        % Add the blinks to EEG.event if no error
+                        EEG = addBlinkEvents(EEG, blinks, blinkFits, blinkProperties, Params.fieldList);                     
                     end
-                    
-                    % Add the blinks to EEG.event
-                    EEG = addBlinkEvents(EEG, blinks, blinkFits, blinkProperties, Params.fieldList);
-                    
+            
                 end
                 
                     
-                %% Epoching for real
-
-                % epoching on this interval
-                interval2 = interval*(1/sr);
-                EEG = pop_epoch(EEG, toepoch, interval2);
+                %% Epoching for real              
+                EEG = pop_epoch(EEG, toepoch, interval/1000);
                 
                 %% Last optionnal algorithms (BLINKER / Basecorr)
                 
@@ -735,7 +739,17 @@ for sbj = 1:numel(FileList)
 
                 %% Baseline correction
                 if strcmpi(bool_Basecorr,'Y')
+                    
+                    % If the interval for basecorr is outside the epoched time range, shrink the window
+                    if interval_basecorr(1) < EEG.times(1) % test lower bound
+                        interval_basecorr(1) = EEG.times(1);
+                    end
+                    if interval_basecorr(end) > EEG.times(end) % test upper bound
+                        interval_basecorr(end) = EEG.times(end);
+                    end
+
                     EEG = pop_rmbase(EEG, interval_basecorr);
+
                 end
 
                 %% save epoched .set
@@ -803,7 +817,7 @@ end
 if Epoch == 'Y'
     fprintf(fid,'\r\n%s\r\n','------ Epoching parameters ------');    
     fprintf(fid,'%s\r\n',['Files suffix: ',epoched_suffix]);
-    fprintf(fid,'%s%s\r\n',['Epoching intervals in ms: ' mat2str(round(interval2,3))],['; in TF: ', mat2str(interval),' with a ', mat2str(sr),' sampling rate']);
+    fprintf(fid,'%s%s\r\n',['Epoching intervals in ms: ' mat2str(round(interval,3))],['; in TF: ', mat2str(intervalTF),' with a ', mat2str(sr),' sampling rate']);
     
     if ~isempty(CondList)
         for cond = 1:length(CondList)
@@ -816,7 +830,7 @@ if Epoch == 'Y'
         end
     elseif isempty(CondList) && ~isempty(allnewtrigg)
         fprintf(fid,'\r\n%s\r\n\t','The following triggers have been used to epoch data:');        
-        fprintf(fid,'%s\r\n\t',allnewtrigg{cond}{cell2mat(alltoepoch{cond})});
+        fprintf(fid,'%s\r\n\t',allnewtrigg{1}{cell2mat(alltoepoch{1})});
     else
         fprintf(fid,'\r\n%s\r\n\t','Epochs have been created around every triggers');        
     end
@@ -869,3 +883,4 @@ if ~strcmp(PromptAnalyses,'Specific folders')
     fprintf(fid,'%s\n',SubPath_all{:});
     fclose(fid);
 end
+disp('done');
