@@ -578,16 +578,23 @@ for sbj = 1:numel(FileList)
 
         if Epoch == 'Y' && mrkname_noerror
             %% Checking in which condition is the current file
-
+            
+            % Matching each condition string pattern with the one in the file name
             if ~isempty(CondList)
-                % Matching each condition string pattern with the one in the file name
+                
+                % Preallocating array
+                Condname_i = zeros([size(CondList,1) 1]);
+                
+                % For each condition, see if we find it in the name or subpath
                 for i = 1:size(CondList,1)
-                    Condname_i(i) = length(strfind(upper([SubPath '\' name_noe]),CondList{i}));
+                    Condname_i(i) = contains(upper([SubPath '\' name_noe]),CondList{i});
                 end
-                % Which condition is the most appropriated to this file
-                [~,I] = max(Condname_i);
+                
+                % In case of multiple positives, take the lengthier condition name
+                [~,I_cond] = max(cellfun('length',CondList) .* Condname_i);
+                
             else
-                I = 1;
+                I_cond = 1;
             end
 
             % If the condition was not found, do not epoch the file
@@ -603,8 +610,8 @@ for sbj = 1:numel(FileList)
             if To_Epoch 
 
                 type = {EEG.event.type};
-                Events = alltrigg{I};
-                NewMarkers = allnewtrigg{I};
+                Events = alltrigg{I_cond};
+                NewMarkers = allnewtrigg{I_cond};
 
                 % For each trigger
                 for n = 1:length(type)
@@ -627,7 +634,7 @@ for sbj = 1:numel(FileList)
 
                 %% Assigning which triggers to epoch
 
-                toepoch_i = alltoepoch{I};
+                toepoch_i = alltoepoch{I_cond};
                 toepoch = {};
                 count = 0;
 
@@ -647,7 +654,7 @@ for sbj = 1:numel(FileList)
 
                 %% Blinker detection on continuous file
                 
-                StimDuration = allStimDuration{I};
+                StimDuration = allStimDuration{I_cond};
                 
                 % This is only applied if stim duration provided
                 if any(cellfun(@(x) ~isempty(x),StimDuration)) && ...
@@ -679,7 +686,7 @@ for sbj = 1:numel(FileList)
                 
                 %% Last optionnal algorithms (BLINKER / Basecorr)
                 
-                StimDuration = allStimDuration{I};
+                StimDuration = allStimDuration{I_cond};
                 
                 % This is only applied if stim duration provided
                 if any(cellfun(@(x) ~isempty(x),StimDuration)) && ...
