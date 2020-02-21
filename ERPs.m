@@ -445,8 +445,31 @@ for sbj = 1:sbj_high
     clear EEG
     ALLEEG = [];
     
+    % SubPath
+    SubFPath = FileList(sbj).folder(length(root_folder)+1:end);
+    
     % If there is a merge
     if merge_ans == "Y"
+        
+        % Test for recursive condition name
+        for test_cond = 1:size(CondList,1)   
+            error_condname(test_cond) = sum(contains(CondList,CondList{test_cond}));
+        end
+        
+        % If it is the case, produce an error
+        if sum(error_condname > 1) == 1
+            errordlg(['The following condition''s name is recursive with another condition: ' CondList{error_condname > 1}], ...
+                'MERGING NOT POSSIBLE')
+            error(['ERROR: Merging is not possible in the case of recursive condition''s name. ',...
+                'It means that the listed condition has its name inside at least one other condition. ',...
+                'To solve this you can write ''_XXX'' instead of ''XXX'' in the table.'])
+        elseif sum(error_condname > 1) > 1
+            errordlg(['The following conditions'' names are recursive with another condition: ' sprintf('\n %s', CondList{error_condname > 1})], ...
+                'MERGING NOT POSSIBLE')
+            error(['ERROR: Merging is not possible in the case of recursive conditions'' names. ',...
+                'It means that the listed conditions have their names inside at least one other condition. ',...
+                'To solve this you can write ''_XXX'' instead of ''XXX'' in the table.']) 
+        end
 
         % Finding the file name for each folder
         FolderName = allFolderName{sbj};
@@ -536,19 +559,29 @@ for sbj = 1:sbj_high
         % If Conditions are specified, 
         if ~isempty(CondList)
             
-            % Searching in which condition we are in
-            I_cond = find(~cellfun('isempty',regexp(upper(FileList(sbj).name),CondList)));
+            % Matching each condition string pattern with the one in the file name + subpath:
+            % Preallocating array
+            Condname_i = zeros([size(CondList,1) 1]);
+
+            % For each condition, see if we find it in the name or subpath
+            for i = 1:size(CondList,1)
+                Condname_i(i) = contains(upper([SubFPath '\' FileList(sbj).name]),CondList{i});
+            end
+
+            % In case of multiple positives, take the lengthier condition name
+            [~,I_cond] = max(cellfun('length',CondList) .* Condname_i);
             
             % If there is a detected condition
-            if ~isempty(I_cond)
+            if nnz(I_cond)
                 % Adding the condition name
                 EEG.cond_name = CondList{I_cond};               
                 
                 % Catching the EEG structure
                 allEEG = {EEG};
             end
-        else                    
-            % If there is no merge and no condition, just take it
+            
+        % If there is no merge and no condition, just take it
+        else                                
             allEEG = {EEG};
         end
     end
