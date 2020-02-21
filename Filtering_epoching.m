@@ -132,6 +132,7 @@ if Epoch == 'Y' % If epoching
     sr = str2double(PromptInputs{end-2});
     % Conversion from ms to TimeFrames according to sampling rate
     intervalTF = round(interval*sr/1000);
+    bool_conderror = 1;
     bool_Blinker = PromptAlgoInputs{end-2};
     bool_Basecorr = PromptAlgoInputs{end-1};
     interval_basecorr = str2num(PromptAlgoInputs{end});
@@ -577,6 +578,41 @@ for sbj = 1:numel(FileList)
         %% EPOCHING
 
         if Epoch == 'Y' && mrkname_noerror
+            
+            %% Checking for condition naming problem
+            % Test if the conditions appear multiple times in the file's name
+            if bool_conderror
+
+                % For each named condition, see how many times it appear in the file's name
+                for i = 1:length(CondList)
+                    error_condname(i) = length(strfind(upper([SubPath '\' name_noe]),CondList{i}));
+                end
+
+                % If the name was seen more than once in the file's name:
+                if any(error_condname > 1)
+                    if sum(error_condname > 1) == 1
+                        text = '\bf\fontsize{10}The following condition''s name appears multiple times in the file''s name: ';
+                    elseif sum(error_condname > 1) > 1
+                        text = '\bf\fontsize{10}The following conditions'' names appear multiple times in the file''s name: ';
+                    end
+
+                    % Displays a modal warning box
+                    opts = struct('WindowStyle','modal',... 
+                                  'Interpreter','tex'); % modal structure
+
+                    w = warndlg({text, sprintf('%s \n', CondList{error_condname > 1}), ...
+                            'It could create condition detection errors.', '\color{red}Are you sure you want to continue epoching ?'}, ...
+                            'Condition detection warning', opts); % the warning
+
+                    % The computation is frozen until the OK button is pressed    
+                    warning('The epoching will resume after you press "Ok"')
+                    uiwait(w); 
+
+                    % The check will not be computed again
+                    bool_conderror = 0;
+                end   
+            end
+
             %% Checking in which condition is the current file
             
             % Matching each condition string pattern with the one in the file name
