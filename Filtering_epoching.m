@@ -748,18 +748,35 @@ for sbj = 1:numel(FileList)
 
                         % For each epoch
                         if ~isempty(Index) && nnz(IdxEpochs)>1
-        
-                            % create an interval inside the stim duration where an eye blink shouldn't be
-                            IdxWindow = (EEG.event(t).latency < latency) & (latency <= EEG.event(t).latency+str2double(StimDuration{Index}));
-                            IdxWindow = find(IdxWindow); % event(s) inside the interval of interest
                             
-                            % for each of these events inside the interval, see if it's about an eye blink (leftbase / rightbase)
-                            for nn = 1:length(IdxWindow)
-                                if any(ismember(Params.fieldList,type{IdxWindow(nn)}))
-                                    ToReject = [ToReject EEG.event(t).epoch]; % append epochs containing blinks
-                                    break
+                            % Cover the case where the blink is happening
+                            % exactly during the stimulation
+                            Sequence = [{'leftBase'} NewMarkers(Index) {'rightBase'}];
+                            Count = zeros(1,nnz(IdxEpochs));
+                            Idx = find(IdxEpochs);
+                            for j=1:length(Idx)
+                                if length(Idx)>2 && strcmpi({EEG.event(Idx(j)).type},Sequence{j})
+                                    Count(j) = 1;
                                 end
-                            end                      
+                            end
+                            
+                            % If sequence is as mentionned above, reject
+                            % the epoch
+                            if nnz(Count) == length(Idx)
+                                 ToReject = [ToReject EEG.event(t).epoch]; % append epochs containing blinks
+                            else
+                                % create an interval inside the stim duration where an eye blink shouldn't be
+                                IdxWindow = (EEG.event(t).latency < latency) & (latency <= EEG.event(t).latency+str2double(StimDuration{Index}));
+                                IdxWindow = find(IdxWindow); % event(s) inside the interval of interest
+
+                                % for each of these events inside the interval, see if it's about an eye blink (leftbase / rightbase)
+                                for nn = 1:length(IdxWindow)
+                                    if any(ismember(Params.fieldList,type{IdxWindow(nn)}))
+                                        ToReject = [ToReject EEG.event(t).epoch]; % append epochs containing blinks
+                                        break
+                                    end
+                                end
+                            end
                         end
                     end
                     
