@@ -377,6 +377,19 @@ if interpolation_ans == 'Y'
                 idx = all(cellfun(@isempty,T_BadChannels),1);
                 T_BadChannels(:,idx) = [];
 
+                % If electrodes labels are letters convert them to numbers
+                if ischar(T_BadChannels{1,2})
+                    NumT_BadChannels = [T_BadChannels(:,1) repmat({NaN},size(T_BadChannels(:,2:end)))];
+                    for m=1:size(T_BadChannels(:,2:end),1)
+                        for n=1:size(T_BadChannels(:,2:end),2)
+                            if ~isempty(T_BadChannels{m,n+1})
+                                NumT_BadChannels{m,n+1} = find(ismember(rowname_nonumb,T_BadChannels(m,n+1)));
+                            end
+                        end
+                    end
+                    T_BadChannels = NumT_BadChannels;
+                end
+                
                 % Remove empty rows
                 idx = all(cellfun(@isnan,T_BadChannels(:,2:end)),2);
                 T_BadChannels(idx,:) = [];

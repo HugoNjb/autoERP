@@ -919,9 +919,19 @@ end
 
 %% Creation of a table for interpolation channels
 
-if ~strcmp(PromptAnalyses,'Specific folders')
-    SubPath_all = unique(cellfun(@(x) x(length(root_folder)+2:end),{FileList(:).folder},'UniformOutput',false));
-    SubPath_all = natsort(SubPath_all);
+if ~strcmp(PromptAnalyses,'Specific folders') % WHAT HAPPENS IF YOU WANT SPECIFIC FOLDERS HERE ???
+    
+%     SubPath_all = unique(cellfun(@(x) x(length(root_folder)+2:end),{FileList(:).folder},'UniformOutput',false));
+%     SubPath_all = natsort(SubPath_all);
+%     SubPath_all = unique(cellfun(@(x) x(length(root_folder)+2:end),AllFiles,'UniformOutput',false));
+%     SubPath_all = natsort(SubPath_all);
+    
+    TEMP = {FileList(:).name}; AllFiles=cell(1,length(TEMP));
+    for m=1:length(TEMP)
+        TEMP2 = strsplit(TEMP{m},'.');
+        AllFiles(m) = TEMP2(1);
+    end
+    SubPath_all = natsort(AllFiles);
 
     fid = fopen([save_folder '\to_interpolate.csv'],'w');
     fprintf(fid,'%s;%s\n','Session','Bad Channels');
