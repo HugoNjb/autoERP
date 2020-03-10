@@ -366,23 +366,20 @@ if interpolation_ans == 'Y' % If you want to interpolate
     
     if interpolation_param ~= 'Y' % If you don't have parameters yet
         
-        if ~strcmp(PromptAnalyses,'Specific folders') % WHAT HAPPENS IF YOU WANT SPECIFIC FOLDERS HERE ???
-
-            TEMP = {FileList(:).name}; AllFiles=cell(1,length(TEMP));
-            for m=1:length(TEMP)
-                TEMP2 = strsplit(TEMP{m},'.');
-                AllFiles(m) = TEMP2(1);
-            end
-            SubPath_all = natsort(AllFiles);
-
-            fid = fopen([save_folder '\to_interpolate.csv'],'w');
-            fprintf(fid,'%s;%s\n','Session','Bad Channels');
-            fprintf(fid,'%s;','Example');
-            fprintf(fid,'%d;',[2,45,46,63]);
-            fprintf(fid,'\n');
-            fprintf(fid,'%s\n',SubPath_all{:});
-            fclose(fid);
+        TEMP = {FileList(:).name}; AllFiles=cell(1,length(TEMP));
+        for m=1:length(TEMP)
+            TEMP2 = strsplit(TEMP{m},'.');
+            AllFiles(m) = TEMP2(1);
         end
+        SubPath_all = natsort(AllFiles);
+
+        fid = fopen([save_folder '\to_interpolate.csv'],'w');
+        fprintf(fid,'%s;%s\n','Session','Bad Channels');
+        fprintf(fid,'%s;','Example');
+        fprintf(fid,'%d;',[2,45,46,63]);
+        fprintf(fid,'\n');
+        fprintf(fid,'%s\n',SubPath_all{:});
+        fclose(fid);
 
         %% Open interface with excel
         
