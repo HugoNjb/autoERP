@@ -342,14 +342,25 @@ if Epoch == 'Y'
         allStimDuration = Epoch_Parameters.StimDuration;
         alltoepoch = Epoch_Parameters.toepoch;
     end
+    
+    % Restricting FileList based on the conditions that should be analysed
+    % Determine if condition is in the folder name
+    if any(contains({FileList.folder},strcat(root_folder,'\',CondList{1})))
+        for f=1:length(CondList)
+            IdxFileList(f,:) = ismember({FileList.folder},strcat(root_folder,'\',CondList{f}));
+        end
+        IdxFileList = sum(IdxFileList,1);
+        FileList = FileList(IdxFileList~=0);
+    else % Or in the file names
+        for f=1:length(CondList)
+            IdxFileList(f,:) = contains({FileList.name},CondList{f});
+        end
+        IdxFileList = sum(IdxFileList,1);
+        FileList = FileList(IdxFileList~=0);
+    end
 end
 
 %% Creation of a table/import for interpolation channels
-
-% TO DO:
-% 1) THIS WAS MOVED FROM THE ERP.M SCRIPT, NEED TO TEST IT !!
-% 2) NEED TO STORE THE LOADED PARAMETERS IN THE SAME TABLE AS InterpTable
-% !!
 
 if interpolation_ans == 'Y' % If you want to interpolate
     
@@ -525,7 +536,8 @@ for sbj = 1:numel(FileList)
                     ChansToRej = ChansToRej(~isnan(ChansToRej)); % Removing NaNs
                 else  % If channels labels
                     ChansToRejLab = InterpTable(Pos,2:end);
-                    ChansToRejLab = ChansToRejLab(~cellfun('isempty',ChansToRejLab));
+                    ChansToRejLab = ChansToRejLab(~cellfun('isempty',ChansToRejLab)); % Removing empty chars
+                    ChansToRejLab = ChansToRejLab(cellfun(@(x) ischar(x),ChansToRejLab)); % Removing NaNs
                     for m=1:length(ChansToRejLab) % Replace by numbers
                         ChansToRej(m) = find(ismember({EEG.chanlocs.labels},ChansToRejLab{m}));
                     end
