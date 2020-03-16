@@ -43,11 +43,15 @@ addpath(strcat(p2,'\Functions\eeglab14_1_2b'));
 
 % Ask what they want to do with their data (filtering / mrk importing / epoching)
 answer = inputdlg({'Do you want to filter your data ? [Y/N]','Do you want to import .mrk ? [Y/N]',...
-    'Do you want to epoch your data ? [Y/N]','Do you already have set up epoching parameters ? [Y/N]'},'Settings',1,{'Y','Y','Y','N'});
+    'Do you want to epoch your data ? [Y/N]','Do you already have set up epoching parameters ? [Y/N]', ...
+    'Do you want to interpolate channels for specific subjects ? [Y/N]',...
+    'Do you already have interpolation parameters ? [Y/N]'},'Settings',1,{'Y','Y','Y','N','Y','N'});
 FILTER    = upper(answer{1});
 ImportMRK = upper(answer{2});
 Epoch     = upper(answer{3});
 resume    = upper(answer{4});
+interpolation_ans   = upper(answer{5});
+interpolation_param = upper(answer{6});
 
 
 % Parameters for Loading, filtering and epoching
@@ -338,6 +342,79 @@ if Epoch == 'Y'
         allStimDuration = Epoch_Parameters.StimDuration;
         alltoepoch = Epoch_Parameters.toepoch;
     end
+    
+    % Restricting FileList based on the conditions that should be analysed
+    % Determine if condition is in the folder name
+    if any(contains({FileList.folder},strcat(root_folder,'\',CondList{1})))
+        for f=1:length(CondList)
+            IdxFileList(f,:) = ismember({FileList.folder},strcat(root_folder,'\',CondList{f}));
+        end
+        IdxFileList = sum(IdxFileList,1);
+        FileList = FileList(IdxFileList~=0);
+    else % Or in the file names
+        for f=1:length(CondList)
+            IdxFileList(f,:) = contains({FileList.name},CondList{f});
+        end
+        IdxFileList = sum(IdxFileList,1);
+        FileList = FileList(IdxFileList~=0);
+    end
+end
+
+%% Creation of a table/import for interpolation channels
+
+if interpolation_ans == 'Y' % If you want to interpolate
+    
+    if interpolation_param ~= 'Y' % If you don't have parameters yet
+        
+        TEMP = {FileList(:).name}; AllFiles=cell(1,length(TEMP));
+        for m=1:length(TEMP)
+            TEMP2 = strsplit(TEMP{m},'.');
+            AllFiles(m) = TEMP2(1);
+        end
+        SubPath_all = natsort(AllFiles);
+
+        fid = fopen([save_folder '\to_interpolate.csv'],'w');
+        fprintf(fid,'%s;%s\n','Session','Bad Channels');
+        fprintf(fid,'%s;','Example');
+        fprintf(fid,'%d;',[2,45,46,63]);
+        fprintf(fid,'\n');
+        fprintf(fid,'%s\n',SubPath_all{:});
+        fclose(fid);
+
+        %% Open interface with excel
+        
+        % Link to Excel
+        Excel = actxserver('Excel.Application');
+        Excel.Workbooks.Open([save_folder '\to_interpolate.csv']);
+
+        % Open the Excel spreadsheet
+        Excel.Visible = 1; 
+
+        % Close the activex server
+        delete(Excel);
+
+        % Wait Bar 
+        Fig=msgbox(['Please fill the excel sheet with the channels numbers/labels to interpolate'... 
+            newline 'THE CODE WILL CONTINUE ONCE YOU PRESS OK'],'WAIT','warn'); 
+        uiwait(Fig);
+        close all
+
+        % Import the list of channels to interpolate
+        InterpTable = table2cell(readtable([save_folder '\to_interpolate.csv']));
+        InterpTable = InterpTable(2:end,:); % Removing example line
+
+    else % If you already have parameters
+        
+        % Choose the file
+        [f_BadChannels,p_BadChannels] = uigetfile({'*.*';'*.csv';'*.mat'},...
+            'Select the .csv or .mat file containing the Bad Channels',root_folder);
+        
+        %% Read csv Bad channels file
+        % If a folder with interp parameters exist     
+        % Load it and convert it to cells
+        InterpTable = table2cell(readtable([p_BadChannels f_BadChannels])); % ,'Delimiter',';','HeaderLines',2
+        InterpTable = InterpTable(2:end,:); % Removing example line
+    end  
 end
 
 %% For each subject
@@ -438,19 +515,56 @@ for sbj = 1:numel(FileList)
     % Si on a des données dans le fichier, alors analyser
     if nnz(size(EEG.data,2))
     
+                    
+        % Load channels location file
+        EEG = pop_chanedit(EEG, 'load',{chanloc_path 'filetype' 'autodetect'});
+        
+        % Re-referencing, because chanedit erase the information
+        EEG = pop_reref(EEG,ref_chan);
+          
+        %% Remove the channels that will be interpolated in the ERP.m script
+        
+        if interpolation_ans == 'Y' % If you want to interpolate
+            clear ChansToRej
+            Pos = find(ismember(InterpTable(:,1),name_noe));
+            if ~isempty(InterpTable{Pos,2})
+                if isnumeric(InterpTable{Pos,2}) % If channels numbers
+                    ChansToRej = cell2mat(InterpTable(Pos,2:end));
+                    ChansToRej = ChansToRej(~isnan(ChansToRej)); % Removing NaNs
+                else  % If channels labels
+                    ChansToRejLab = InterpTable(Pos,2:end);
+                    ChansToRejLab = ChansToRejLab(~cellfun('isempty',ChansToRejLab)); % Removing empty chars
+                    ChansToRejLab = ChansToRejLab(cellfun(@(x) ischar(x),ChansToRejLab)); % Removing NaNs
+                    for m=1:length(ChansToRejLab) % Replace by numbers
+                        ChansToRej(m) = find(ismember({EEG.chanlocs.labels},ChansToRejLab{m}));
+                    end
+
+                    % TEMPORARY STORAGE
+                    AllChansToRej{sbj} = ChansToRej;
+                end
+            end
+
+            % Reject chans
+            if exist('ChansToRej','var') && ~isempty(ChansToRej)
+
+                % Saving the bad channels data
+                EEG.BadChans.chanlocs = EEG.chanlocs; 
+                EEG.BadChans.nbchan = EEG.nbchan;
+                EEG.BadChans.data = EEG.data(ChansToRej,:);
+                EEG.BadChans.InterpChans = ChansToRej;
+
+                % Removing the bad channels
+                EEG = pop_select(EEG,'nochannel',ChansToRej);  
+            end
+        end
+        
         %% Filtering
 
         if FILTER == 'Y'
             
             % Editing new channel location
-            EEG.data = EEG.data(1:nbchan,:,:);
-            EEG.nbchan = nbchan;
-            
-            % ERP file
-            EEG = pop_chanedit(EEG, 'load',{chanloc_path 'filetype' 'autodetect'});
-            
-            % Re-referencing, because chanedit erase the information
-            EEG = pop_reref(EEG,ref_chan);
+%             EEG.data = EEG.data(1:nbchan,:,:);
+%             EEG.nbchan = nbchan;
             
 %             if strcmpi(PromptRSA,'Y')
 %                 % Resting-state file (may be unnecessary)
@@ -532,7 +646,7 @@ for sbj = 1:numel(FileList)
         if ImportMRK == 'Y'
 
             % opening the .mrk file and capturing its data (trigger type and latency)
-            filenameMRK = [mrk_folder SubPath '\' name_noe '.bdf.mrk'];
+            filenameMRK = [mrk_folder SubPath '\' name_noe '.mrk'];
             delimiter = '\t';
             startRow = 2;
             formatSpec = '%q%q%q%[^\n\r]';
@@ -711,15 +825,21 @@ for sbj = 1:numel(FileList)
                     try
                         [EEG, ~, blinks, blinkFits, blinkProperties, ~, ~] = pop_blinker(EEG, Params);
                         % Add the blinks to EEG.event if no error
-                        EEG = addBlinkEvents(EEG, blinks, blinkFits, blinkProperties, Params.fieldList);                     
+                        EEG = addBlinkEvents(EEG, blinks, blinkFits, blinkProperties, Params.fieldList);     
+                    catch
+                        warning('No blinks were detected by BLINKER for file %s',name_noe)
                     end
-            
-                end
-                
+                end              
                     
                 %% Epoching for real              
                 EEG = pop_epoch(EEG, toepoch, interval/1000);
                 
+                % Epoching the bad channels and replace unepoched data in the EEG.BadChans structure
+                if isfield(EEG,'BadChans')
+                    TEMPEEG = EEG;
+                    TEMPEEG.data = EEG.BadChans.data;
+                    TEMPEEG = pop_epoch(TEMPEEG, toepoch, interval/1000);
+                end
                 %% Last optionnal algorithms (BLINKER / Basecorr)
                 
                 StimDuration = allStimDuration{I_cond};
@@ -734,9 +854,17 @@ for sbj = 1:numel(FileList)
                     latency = cell2mat({EEG.event.latency});
                     epochs = cell2mat({EEG.event.epoch});
                     ToReject = [];
-                                       
-                    for t=1:length(EEG.event)
-
+                                        
+                    % index of triggers to inspect (only the ones for which a stim duration was provided)
+                    WhichMarkerStimDur = NewMarkers(~cellfun('isempty',StimDuration)); 
+                    Idx = zeros(length(EEG.event),length(WhichMarkerStimDur));
+                    for m=1:length(WhichMarkerStimDur)
+                       Idx(:,m) = ismember(type,WhichMarkerStimDur{m});
+                    end
+                    Idx = sum(Idx,2);
+                    Idx = find(Idx>=1)';  
+                    
+                    for t=Idx
                         % Check if the marker shares one value with the ones 
                         % entered in the table before
                         Index_NewMarkers = find(ismember(NewMarkers,type{t}));
@@ -748,51 +876,71 @@ for sbj = 1:numel(FileList)
 
                         % For each epoch
                         if ~isempty(Index) && nnz(IdxEpochs)>1
-        
+                            
                             % create an interval inside the stim duration where an eye blink shouldn't be
                             IdxWindow = (EEG.event(t).latency < latency) & (latency <= EEG.event(t).latency+str2double(StimDuration{Index}));
                             IdxWindow = find(IdxWindow); % event(s) inside the interval of interest
-                            
+
                             % for each of these events inside the interval, see if it's about an eye blink (leftbase / rightbase)
                             for nn = 1:length(IdxWindow)
                                 if any(ismember(Params.fieldList,type{IdxWindow(nn)}))
                                     ToReject = [ToReject EEG.event(t).epoch]; % append epochs containing blinks
                                     break
                                 end
-                            end                      
+                            end
                         end
                     end
+                    
+                    % If more than 1 trigger of interest, might reject
+                    % multiple times the same epoch
+                    ToReject = unique(ToReject);
                     
                     % Reject using pop_rejepoch the flagged epochs
                     Alltrials{sbj} = EEG.trials;
                     EEGtrialsReject = zeros(1,EEG.trials);
                     EEGtrialsReject(ToReject) = 1;
-                    EEG = pop_rejepoch( EEG, EEGtrialsReject ,0);
+                    EEG = pop_rejepoch(EEG, EEGtrialsReject ,0);
                     StoredRejectEpochs{sbj} = ToReject;
                     
-                    % Remove remaining the events generated by BLINKER (left/rightbase)
-                    type = {EEG.event.type};
+                    % Rejecting epochs also in the BadChannels dataset
+                    if isfield(EEG,'BadChans')
+                        TEMPEEG = pop_rejepoch(TEMPEEG, EEGtrialsReject ,0);
+                    end
+                    
+                    % Remove remaining events generated by BLINKER (left/rightbase)
+                    type = {EEG.event.type}; RemIdx =[];
                     for t=1:length(EEG.event)
                         Index = find(ismember(Params.fieldList,type{t}));
                         if ~isempty(Index)
-                            EEG.event(t) = [];
+                            RemIdx = [RemIdx t]; % The only way to avoid exceeding matrix dimension
                         end
                     end
+                    
+                    % Remove the indexed events
+                    EEG.event(RemIdx) = [];
                 end
 
                 %% Baseline correction
                 if strcmpi(bool_Basecorr,'Y')
                     
                     % If the interval for basecorr is outside the epoched time range, shrink the window
-                    if interval_basecorr(1) < EEG.times(1) % test lower bound
-                        interval_basecorr(1) = EEG.times(1);
-                    end
-                    if interval_basecorr(end) > EEG.times(end) % test upper bound
-                        interval_basecorr(end) = EEG.times(end);
+                    if ~isempty(interval_basecorr) % If input = empty, baseline correction on whole window
+                        if interval_basecorr(1) < EEG.times(1) % test lower bound
+                            interval_basecorr(1) = EEG.times(1);
+                        end
+                        if interval_basecorr(end) > EEG.times(end) % test upper bound
+                            interval_basecorr(end) = EEG.times(end);
+                        end
                     end
 
                     EEG = pop_rmbase(EEG, interval_basecorr);
-
+                    
+                    if isfield(EEG,'BadChans')
+                        TEMPEEG = pop_rmbase(TEMPEEG, interval_basecorr);
+                    
+                        % Replacing the BadChans data in the original dataset
+                        EEG.BadChans.data = TEMPEEG.data;
+                    end
                 end
 
                 %% save epoched .set
@@ -912,18 +1060,4 @@ if nnz(count_error)
     
 end
 
-%% Creation of a table for interpolation channels
-
-if ~strcmp(PromptAnalyses,'Specific folders')
-    SubPath_all = unique(cellfun(@(x) x(length(root_folder)+2:end),{FileList(:).folder},'UniformOutput',false));
-    SubPath_all = natsort(SubPath_all);
-
-    fid = fopen([save_folder '\to_interpolate.csv'],'w');
-    fprintf(fid,'%s;%s\n','Session','Bad Channels');
-    fprintf(fid,'%s;','Example');
-    fprintf(fid,'%d;',[2,45,46,63]);
-    fprintf(fid,'\n');
-    fprintf(fid,'%s\n',SubPath_all{:});
-    fclose(fid);
-end
 disp('done');
