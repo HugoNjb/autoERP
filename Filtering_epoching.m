@@ -167,7 +167,6 @@ elseif strcmp(PromptChanLoc,'128')
     ref_chan = 1;
 end
 
-
 % Path of your upper folder containing your data
 root_folder = uigetdir('title',...
     'Choose the path of your most upper folder containing your RAW of Processed data.');
@@ -179,8 +178,6 @@ if strcmp(ImportMRK,'Y')
     mrk_folder = uigetdir('title',...
         'Choose the path of your most upper folder containing your .mrk files');
 end
-
-
 
 % Path of the folder to save filtered and epoched .set
 save_folder = uigetdir('title',...
@@ -390,14 +387,13 @@ if interpolation_ans == 'Y' % If you want to interpolate
         % Open the Excel spreadsheet
         Excel.Visible = 1; 
 
-        % Close the activex server
-        delete(Excel);
-
         % Wait Bar 
         Fig=msgbox(['Please fill the excel sheet with the channels numbers/labels to interpolate'... 
             newline 'THE CODE WILL CONTINUE ONCE YOU PRESS OK'],'WAIT','warn'); 
         uiwait(Fig);
         close all
+        Excel.ActiveWorkbook.Save; 
+        Excel.Quit; % Close the activex server
 
         % Import the list of channels to interpolate
         InterpTable = table2cell(readtable([save_folder '\to_interpolate.csv']));
