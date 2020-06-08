@@ -342,18 +342,20 @@ if Epoch == 'Y'
     
     % Restricting FileList based on the conditions that should be analysed
     % Determine if condition is in the folder name
-    if any(contains({FileList.folder},strcat(root_folder,'\',CondList{1})))
-        for f=1:length(CondList)
-            IdxFileList(f,:) = ismember({FileList.folder},strcat(root_folder,'\',CondList{f}));
+    if ~isempty(CondList) % if no conditions are entered 
+        if any(contains({FileList.folder},strcat(root_folder,'\',CondList{1})))
+            for f=1:length(CondList)
+                IdxFileList(f,:) = ismember({FileList.folder},strcat(root_folder,'\',CondList{f}));
+            end
+            IdxFileList = sum(IdxFileList,1);
+            FileList = FileList(IdxFileList~=0);
+        else % Or in the file names
+            for f=1:length(CondList)
+                IdxFileList(f,:) = contains({FileList.name},CondList{f});
+            end
+            IdxFileList = sum(IdxFileList,1);
+            FileList = FileList(IdxFileList~=0);
         end
-        IdxFileList = sum(IdxFileList,1);
-        FileList = FileList(IdxFileList~=0);
-    else % Or in the file names
-        for f=1:length(CondList)
-            IdxFileList(f,:) = contains({FileList.name},CondList{f});
-        end
-        IdxFileList = sum(IdxFileList,1);
-        FileList = FileList(IdxFileList~=0);
     end
 end
 
