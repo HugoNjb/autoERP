@@ -509,12 +509,13 @@ for sbj = 1:sbj_high
                     sbj_count = sbj_count +1;
                     
                     % Load the dataset
-                    EEG = pop_loadset('filename',same_cond,'filepath',FolderName);
+                    EEG = pop_loadset('filename',same_cond,'filepath',FolderName);                    
                     
                     % If more than two files for one condition in the same 
                     % condition, merge them together
                     if length(same_cond) > 1
-                        [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0,'study',0); 
+                        [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0,'study',0);
+                        ALLEEG = eeg_checkset(ALLEEG, 'makeur'); % making sure event and urevent are identical
                         EEG = pop_mergeset( ALLEEG, 1:length(ALLEEG));
                         EEG.cond_name = CondList{cond};
                         
@@ -538,8 +539,10 @@ for sbj = 1:sbj_high
             waitbar(sbj/sbj_high,h,{['Merging: ' name_h] , ['Progress: ' num2str(sbj) '/' num2str(sbj_high)]})
         
             % Merging the whole folder
-            EEG = pop_loadset('filename',same_session,'filepath',FolderName);
+            EEG = pop_loadset('filename',same_session,'filepath',FolderName); % may be redundant with pop_newset
+        
             [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0,'study',0); 
+            ALLEEG = eeg_checkset(ALLEEG, 'makeur');  % making sure event and urevent are identical
             EEG = pop_mergeset( ALLEEG, 1:length(ALLEEG), 0);
             
             % Everything in one variable
