@@ -68,14 +68,15 @@ PromptValues = {'.bdf','filtered','0.5','40','epoched','-100 700','1024','64',''
 
 
 % Optionnal algorithms decision
-PromptAlgoInstruct= {['Would you like to use... [Y/N]' newline,...
+PromptAlgoInstruct = {['Would you like to use... [Y/N]' newline,...
     newline 'CleanLine (efficient filtering of sinusoidal noise)'],...
 'ASR (interpolation of non-sinusoidal high-variance bursts )',...
+'eBridge (detection of bridges between channels)',...
 'BLINKER (eye blink detection and rejection of epochs containing blinks)',...
 'Baseline correction',...
 'Enter the interval for baseline correction (in ms). Empty if whole epoch range.'};
 
-PromptAlgoValues = {'Y','Y','Y','Y','-100 700'};
+PromptAlgoValues = {'Y','Y','Y','Y','Y','-100 700'};
  
 
 % If user doesn't want to filter, remove the associated lines
@@ -129,6 +130,7 @@ if FILTER == 'Y' % If filtering
 %         end
 %     end  
 end
+bool_eBridge = PromptAlgoInputs{3};
 
 if Epoch == 'Y' % If epoching
     epoched_suffix = PromptInputs{end-4};
@@ -434,12 +436,13 @@ h = waitbar(0,{'Loading' , ['Progress: ' '0 /' num2str(numel(FileList))]});
 count_error = 0;
 i_load = 0;
 StoredRejectEpochs = cell(1,numel(FileList));
+Bridges = cell(1,numel(FileList));
 Alltrials = cell(1,numel(FileList));
 
 for sbj = 1:numel(FileList)
 
     %% Name shenanigans
-    
+
     FileName = [FileList(sbj).folder,'\',FileList(sbj).name];
     name_noe = FileList(sbj).name(1:end-length(extension));
     
@@ -519,6 +522,17 @@ for sbj = 1:numel(FileList)
         
         % Re-referencing, because chanedit erase the information
         EEG = pop_reref(EEG,ref_chan);
+        
+        %% Detection of channels bridge (eBridge plugin)
+        %TEMP (fake data)
+%         EEG.data(34,:) = EEG.data(35,:);
+%         EEG.data(57,:) = EEG.data(58,:);
+        if strcmpi(bool_eBridge,'Y')
+            EB = eBridge(EEG,'PlotMode',0,'Verbose',0);
+            if nnz(EB.Bridged.Count)
+                Bridges{sbj} = EB.Bridged.Labels;
+            end
+        end
           
         %% Remove the channels that will be interpolated in the ERP.m script
         
@@ -1042,7 +1056,18 @@ if Epoch == 'Y'
             end
         end
     end
-    
+end
+
+if strcmpi(bool_eBridge,'Y')
+    fprintf(fid,'\r\n%s\r\n','------ Channels bridge detection ------');
+    fprintf(fid,'\r\n%s\r\n','This is the list of bridged channels identified by the eBridge algorithm.');   
+    for k=1:length(FileList)
+        if ~isempty(Bridges{k})
+            fprintf(fid,'\r\n%s',sprintf('%d) %s: ',k,FileList(k).name));
+            fprintf(fid,'%s ', Bridges{k}{:});
+            fprintf(fid,'\r\n');
+        end
+    end
 end
 
 fclose(fid);
