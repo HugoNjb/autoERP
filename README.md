@@ -7,8 +7,8 @@ A log is generated after each run to explicit what was done to the files.
 Script order and details:
 
 1) Filter_epoching.m ----
-   This script filters, implements .mrk and epochs .bdf or .set
-   You can create and save your epoching parameters in a .mat file to re-load it in a future use of this script.
+This script filters, implements .mrk and epochs .bdf or .set.
+You can create and save your epoching parameters in a .mat file to re-load it in a future use of this script.
 
 Filtering pipeling:
 1. Re-reference
@@ -21,11 +21,10 @@ Filtering pipeling:
 
 At the end of epoching, a to_interpolate.xlsx file is generated. You can write in it the bad channels and load them during the ERPs script.
 
-2) comp_ICA.m ----
-   After having manually computed ICA, you can load the concerned .set to choose the components you want to remove.
-   For each folder, you will have the topography of the component, the scroll of their activation and the full eeg data scroll to take your decision.
-   ! This decision is asked only once per subfolder !
-   -> After rejecting the components, you can epoch them wihout filtering them with the Filter_epoching.m script with your saved epoching parameters.
+2) comp_ICA.m (optionnal) ----
+After having manually computed ICA, you can load the concerned .set to choose the components you want to remove.
+For each folder, you will have the topography of the component, the scroll of their activation and the full eeg data scroll to take your decision. ! This decision is asked only once per subfolder !
+-> After rejecting the components, you can epoch them wihout filtering them with the Filter_epoching.m script with your saved epoching parameters.
 
 
 3) ERPs.m ----
