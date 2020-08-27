@@ -584,6 +584,7 @@ for sbj = 1:numel(FileList)
             if bool_conderror
 
                 % For each named condition, see how many times it appear in the file's name
+                error_condname = 0;
                 for i = 1:length(CondList)
                     error_condname(i) = length(strfind(upper([SubPath '\' name_noe]),CondList{i}));
                 end
