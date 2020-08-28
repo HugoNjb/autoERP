@@ -2,17 +2,17 @@
 LNS automated matlab scripts for computing ERPs from raw bdf files with 64 electrodes.
 The autoERP scripts package has been programmed by Hugo Najberg and Corentin Wicht from the Laboratory of Neurorehabilitation Science (https://www3.unifr.ch/med/spierer/en/), Fribourg, Switzerland, and was supported by the SNSF and doc.ch funds.
 
-##Acknowledgments: 
+## Acknowledgments: 
 Dr. Lucas Spierer, Dr. Michael Mouthon, and Dr. Michael De Pretto provided substantial advice on the pre-processing pipeline, ergonomy and testing.
 
-##Description:
+## Description:
 Flexible and adaptable to all designs and folder trees.
 All steps can be skiped. All default values can be modified.
 A log is generated after each run to explicit what was done to the files.
 
-**__Script order and details:__**
+**Script order and details:**
 
-###1) Filter_epoching.m
+### 1) Filter_epoching.m
 This script filters, implements .mrk and epochs .bdf or .set.
 You can create and save your epoching parameters in a .mat file to re-load it in a future use of this script.
 
@@ -27,13 +27,13 @@ Filtering pipeling:
 
 At the end of epoching, a to_interpolate.xlsx file is generated. You can write in it the bad channels and load them during the ERPs script.
 
-###2) comp_ICA.m (optionnal)
+### 2) comp_ICA.m (optionnal)
 After having manually computed ICA, you can load the concerned .set to choose the components you want to remove.
 For each folder, you will have the topography of the component, the scroll of their activation and the full eeg data scroll to take your decision. ! This decision is asked only once per subfolder !
 -> After rejecting the components, you can epoch them wihout filtering them with the Filter_epoching.m script with your saved epoching parameters.
 
 
-###3) ERPs.m
+### 3) ERPs.m
 1. Reject epochs containings artifacts while ignoring bad channels: 80uV threshold criterion and 30uV jumps
 2. Compute the ERP based on averaging parameters 
 4. Interpolate the bad channels
