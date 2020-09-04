@@ -452,6 +452,7 @@ for sbj = 1:sbj_high
     if merge_ans == "Y"
         
         % Test for recursive condition name
+        error_condname = 0;
         for test_cond = 1:size(CondList,1)   
             error_condname(test_cond) = sum(contains(CondList,CondList{test_cond}));
         end
