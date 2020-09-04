@@ -1,6 +1,5 @@
 # autoERP
-LNS automated matlab scripts for computing ERPs from raw bdf files with 64 electrodes.
-The autoERP scripts package has been programmed by Hugo Najberg and Corentin Wicht from the Laboratory of Neurorehabilitation Science (https://www3.unifr.ch/med/spierer/en/), Fribourg, Switzerland, and was supported by the SNSF and doc.ch funds.
+LNS automated matlab scripts for computing ERPs from raw .bdf files with 64 electrodes.
 
 ## Description:
 Flexible and adaptable to all designs and folder trees.
