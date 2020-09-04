@@ -18,11 +18,7 @@
 
 % Hugo Najberg (script, protocol)
 % Corentin Wicht (script, protocol)
-% Michael Mouthon (protocol)
-% Lucas Spierer (protocol)
 
-% If you have questions or want to contribute to this pipeline, feel free 
-% to contact hugo.najberg@unifr.ch
 
 %% --------------------- PRESS F5 -------------------- %%
 %% --------------------------------------------------- %%
