@@ -107,19 +107,6 @@ if FILTER == 'Y' % If filtering
     high = str2double(PromptInputs{4});
     bool_CleanLine = PromptAlgoInputs{1};
     bool_ASR = PromptAlgoInputs{2};
-    
-%     % if ASR, asks if want to feed resting state data to the algo
-%     if strcmpi(bool_ASR,'Y')
-%         PromptRSA = questdlg('Would you like to import individual resting-state data to be used as reference data in the ASR algorithm ?', ...
-% 	                '','Yes','No','No');
-%                 
-%         % If yes, where is the data to feed ?
-%         if strcmp(PromptRSA,'Yes')             
-%             RSData_folder = uigetdir('title',...
-%                 'Choose the path of your most upper folder containing your PREPROCESSED resting-state files');
-%             RSFileList = dir([RSData_folder '\**\*' extension]);
-%         end
-%     end  
 end
 
 if Epoch == 'Y' % If epoching
@@ -468,49 +455,6 @@ for sbj = 1:numel(FileList)
             % ASR : Non-stationary artifacts removal
             if strcmpi(bool_ASR,'Y')
                 EEG = clean_rawdata(EEG, -1, -1, -1, -1, 10, -1); 
-                %% NEW (27.09.2019) --> TO DO !!! 
-                % The idea is to use the loaded resting-state files to use
-                % them to build the clean reference for ASR interpolation
-                % of artifacts (on the ERP files). 
-    %             
-    %             % ASR settings
-    %             asr_windowlen = max(0.5,1.5*EEG.nbchan/EEG.srate);
-    %             BurstCriterion = 10;
-    %             asr_stepsize = [];
-    %             maxdims = 1;
-    %             availableRAM_GB = [];
-    %             usegpu = false;
-    %             
-    %             % TESTS :
-    %             rsEEG = clean_rawdata(rsEEG, -1, -1, -1, -1, 10, -1); 
-    %             TEMPEEG = EEG;
-    %            
-    %             % Creating a clean reference section (based on resting data)
-    %             EEGCleanRef = clean_windows(rsEEG,0.075,[-3.5 5.5],1);   
-    %             
-    %             % Calibrate on the reference data
-    %             state = asr_calibrate(EEGCleanRef.data, EEGCleanRef.srate,...
-    %                 BurstCriterion, [], [], [], [], [], [], [], 'availableRAM_GB', availableRAM_GB);
-    %             
-    %             % Extrapolate last few samples of the signal
-    %             sig = [EEG.data bsxfun(@minus,2*EEG.data(:,end),...
-    %                 EEG.data(:,(end-1):-1:end-round(asr_windowlen/2*EEG.srate)))];
-    %             
-    %             % Process signal using ASR
-    %             [TEMPEEG.data,state] = asr_process(sig,EEG.srate,state,...
-    %                 asr_windowlen,asr_windowlen/2,asr_stepsize,maxdims,availableRAM_GB,usegpu);
-    %             
-    %             % Shift signal content back (to compensate for processing delay)
-    %             TEMPEEG.data(:,1:size(state.carry,2)) = [];
-    %             
-    %             % Comparing the old and new data
-    %             plot(TEMPEEG.data(1,:))
-    %             hold on; plot(EEG.data(1,:)); hold off
-    %             legend('WithASR','WithoutASR')
-    % %             
-    %             % Comparing the old (with blinks) and new (without blinks) data
-    %             vis_artifacts(TEMPEEG,EEG);
-    %             EEG.data = TEMPEEG.data;
             end
             
             %% if there is a filtering but no mrk importation
