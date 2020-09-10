@@ -1,10 +1,16 @@
 # autoERP
-LNS automated matlab scripts for computing ERPs from raw .bdf files with 64 electrodes.
+LNS automated Matlab scripts for pre-processing raw EEG signal into filtered epoched data (Filtering_epoching.m), doing ICA to reject blink components (Comp_ICA.m), and computing ERPs after interpolation and artefact rejection (ERPs.m).
+
+**⚠️ Currently only compatible with raw .bdf and .set files with 64 channels**
 
 ## Description:
 Flexible and adaptable to all designs and folder trees.
+
 All steps can be skiped. All default values can be modified.
+
 A log is generated after each run to explicit what was done to the files.
+
+*For more information to how to get started, please refer to the **User Manual**.*
 
 **Script order and details:**
 
@@ -67,6 +73,9 @@ The dependencies are already included and loaded automatically in the Functions 
 *corentin.wicht@unifr.ch, corentinw.lcns@gmail.com*\
 *[Laboratory for Neurorehabilitation Science](https://www3.unifr.ch/med/spierer/en/)*\
 *University of Fribourg, Switzerland*
+
+## Cite the repository
+H. Najberg, C.A. Wicht, autoERP, (2020), GitHub repository https://github.com/HugoNjb/autoERP
 
 ## License
 <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
