@@ -98,4 +98,63 @@ That's it ! Your files are ready to be filtered, re-triggered, and epoched.
 
 At the end of processing, a log.txt file is created where your files are saved. It shows all the details of what was done during the processing. Additionnaly, a to_interpolate.csv file is created at the same place. It will allow us later on to indicate to the [ERPs.m](ERPs.m) script which channels are to be interpolated. Do not touch it at the moment.
 
-## ERPs.m
+## 2 Comp_ICA.m
+
+*To be written.*
+
+
+## 3 ERPs.m
+
+Now that we have filtered and epoched data, we can pre-process the signal a tad bit more with artefact rejections and bad channels rejections before computing their Evoked Response Potentials referenced to Cz or average referenced.
+
+The averaging for ERP computation is compatible to all designs as long as you have a coherent nomenclature to support it. It means the conditions' name need to be written in the same way somewhere on all files' name or in a sub-folder.
+
+### 3.1 Settings
+
+![](Screenshots/7.png)
+
+In this first prompt, you will tell the script what you want to do.
+
+First, do you want to merge datasets ? In the case you have several files for a same subject in a same condition, you can say 'Y' to have all the same-subject and same-condition files to be loaded and merged together in one whole file. It can be useful if you stoped your recording and saved two separated files during your experiment for example.
+
+On the first run, you should not have averaging parameters. This is a system akin to the [epoching parameters](#16-epoching-parameters).
+
+You can also want to interpolate bad channels. If 'Y', the indicated bad channels will be ignored for the artefact rejection and then interpolated using multi-quadratic interpolation. The link to this interpolation algorithm is in the Dependencies section of the [README.md](README.md).
+
+If you write having *Interpolation parameters*, the script will ask you for the *to_interpolate.csv* file created at the end of the epoching. In this file, you have one row for each subject at each condition. You need to indicate their bad channels by putting their channel numbers in the next columns in the same fashion as the first example line. **Do not delete the first example line !** If you say not having *Interpolation parameters* but still ask to interpolate, a table where you need to tick all the bad channels will be displayed (very slow and tedious; not adviced method).
+
+The next two lines ask if you want your ERPs referenced to Cz and/or average referenced ERPs. 
+
+The last line ask you if you want to save the signal just before the averaging. In this case, you will have epoched data pre-processed through artefact rejection and interpolation, but not averaged into ERPs.
+
+### 3.2 Parameters
+
+![](Screenshots/8.png)
+
+In this prompt, the script asks you for the suffix of your epoched data to know which files to load, akin to what is done in the filtering_epoching script's [second prompt](#12-parameters). It also asks you which suffix you want to add to the final ERP files.
+
+The artefact rejection means that all epochs containing one frame over the input threshold (80uV by default) will be excluded. If you don't want to use this method, erase the line's value.
+
+#### 3.3 Files path
+
+1) The script will then ask you to select the folder containing all the epoched data you want to load. **It does not matter if this folder contains sub-folders.
+It will take that into account and copy the folder-tree when saving the final ERP files.**
+It will search for the files finishing by what you input in the first line of the [parameters prompt](#32-parameters).
+
+2) Enter the folder where you want you filtered and epoched file to be saved.
+These files will have the same names than your loaded epoched files, but with the suffix you input during the [parameters prompt](#32-parameters). The folder-tree will rearranged to follow a classification by condition and event averaging.
+
+### 3.4 Subject specific analyses
+
+Same as [section 1.5](#15-subject-specific-analyses).
+
+### 3.5 ERPs parameters
+
+The script will first ask you for the marker_parameters.mat that have been saved during your first epoching run (see [section 1.6](#16-epoching-parameters)) to give you the table of the triggers' name you used during epoching. It is purely there to help you recall which names you gave to your triggers, you can skip this help by closing the window.
+
+**_For each of the following prompt, close the window to continue._**
+
+![](Screenshots/9.png)
+
+Same logic as in the [epocing parameters](#16-epoching-parameters). Write the condition names you used in your nomenclature in each line of this prompt.
+If you don't have conditions in your design, delete the default cells' value.
