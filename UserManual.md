@@ -156,5 +156,14 @@ The script will first ask you for the marker_parameters.mat that have been saved
 
 ![](Screenshots/9.png)
 
-Same logic as in the [epocing parameters](#16-epoching-parameters). Write the condition names you used in your nomenclature in each line of this prompt.
+Same logic as in the [epoching parameters](#16-epoching-parameters). Write the condition names you used in your nomenclature in each line of this prompt.
 If you don't have conditions in your design, delete the default cells' value.
+
+
+
+-----
+*To write: Screenshot of averaging trigger
+
+Log + Ntrials
+
+Advice on interpolation loop*
