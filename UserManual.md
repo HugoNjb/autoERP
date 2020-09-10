@@ -86,7 +86,7 @@ If you don't have conditions or if the conditions are identical in terms of even
 
 ![](Screenshots/6.png)
 
-In this prompt, you will need to list the trigger name in the first column **as they appear in the raw file**, how you want them to be renamed in the second, their duration in the third to indicate when to remove the epoch in the presence of an eye-blink (conditional to the [BLINKER algorithm](#13-algorithms-options)), and a tick if you want to epoch the event or just erase it.
+In this prompt, you will need to list the trigger name in the first column **as they appear in the raw file, or as they appear in the .mrk file if you re-triggered the event**, how you want them to be renamed in the second, their duration in the third to indicate when to remove the epoch in the presence of an eye-blink (conditional to the [BLINKER algorithm](#13-algorithms-options)), and a tick if you want to epoch the event or just erase it.
 
 This prompt will be shown for every condition you entered in the last prompt. Thus, if you have three conditions, the prompt will be displayed three times for each of them. If you have none, only one will appear.
 
@@ -96,6 +96,6 @@ After these, you will have to choose where you want the parameters to be saved (
 
 That's it ! Your files are ready to be filtered, re-triggered, and epoched.
 
-At the end of processing, a log.txt file is created where your files are saved. It shows all the details of what was done during the processing. Additionnaly, a to_interpolate.csv file is created at the same place. It will allow us later on to indicate to the (ERPs.m)[ERPs.m] script which channels are to be interpolated. Do not touch it at the moment.
+At the end of processing, a log.txt file is created where your files are saved. It shows all the details of what was done during the processing. Additionnaly, a to_interpolate.csv file is created at the same place. It will allow us later on to indicate to the [ERPs.m](ERPs.m) script which channels are to be interpolated. Do not touch it at the moment.
 
 ## ERPs.m
