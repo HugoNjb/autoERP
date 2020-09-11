@@ -776,7 +776,7 @@ for sbj = 1:sbj_high
             % Duplicating the EEG structure to keep a save file
             EEG_epoched = EEG;
             
-            %% Averaging, Interpolation and Re-referencing
+            %% Averaging and Re-referencing
             
             % Averaging the data on the third dim
             EEG.data = mean(EEG.data,3);
