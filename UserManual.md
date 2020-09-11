@@ -1,5 +1,24 @@
 # User Manual
 
+**Table of Contents**
+* [1. Filtering_epoching.m](#1-filtering_epochingm)
+  + [1.1 Settings](#11-settings)
+  + [1.2 Parameters](#12-parameters)
+  + [1.3 Algorithms options](#13-algorithms-options)
+  + [1.4 Files path](#14-files-path)
+  + [1.5 Subject specific analyses](#15-subject-specific-analyses)
+  + [1.6 Epoching parameters](#16-epoching-parameters)
+  + [1.7 Output files](#17-output-files)
+* [2 Comp_ICA.m](#2-comp_icam)
+* [3 ERPs.m](#3-erpsm)
+  + [3.1 Settings](#31-settings)
+  + [3.2 Parameters](#32-parameters)
+  + [3.3 Files path](#33-files-path)
+  + [3.4 Subject specific analyses](#34-subject-specific-analyses)
+  + [3.5 ERPs parameters](#35-erps-parameters)
+  + [3.6 Output files](#36-output-files)
+  + [3.7 Advice for interpolation](#37-advice-for-interpolation)
+
 ## 1. Filtering_epoching.m
 
 **⚠️ Keep the defaults values if you don't know what you are doing!**
@@ -139,7 +158,7 @@ In this prompt, the script asks you for the suffix of your epoched data to know 
 
 The artefact rejection means that all epochs containing one frame over the input threshold (80uV by default) will be excluded. If you don't want to use this method, erase the line's value.
 
-#### 3.3 Files path
+### 3.3 Files path
 
 1) The script will then ask you to select the folder containing all the epoched data you want to load. **It does not matter if this folder contains sub-folders.
 It will take that into account and copy the folder-tree when saving the final ERP files.**
@@ -173,7 +192,7 @@ After these, you will have to choose where you want the parameters to be saved (
 
 Next it will ask you to indicate the path of the to_interpolate.csv file or to indicate the bad channels in a table based on your [settings](#31-settings).
 
-### 3.7 Output files
+### 3.6 Output files
 
 That's it ! Your epoched data is ready to be pre-processed with interpolation of bad channels, artefact rejections, rejection of epochs containing jumps of more than 30uV from one time-frame to another, averaging into ERPs, and re-referencing.
 
@@ -201,7 +220,7 @@ Each line corresponds to an ERP. The columns represent:
 
 7) The final number of epochs within the ERP.
 
-### 3.8 Advice for interpolation
+### 3.7 Advice for interpolation
 
 It is adviced that you do not give bad channels to interpolate during your first run of ERPs computation.
 
