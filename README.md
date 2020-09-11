@@ -37,10 +37,11 @@ For each folder, you will have the topography of the component, the scroll of th
 
 
 ### 3) ERPs.m
-1. Reject epochs containings artifacts while ignoring bad channels: 80uV threshold criterion and 30uV jumps
-2. Compute the ERP based on averaging parameters 
-4. Interpolate the bad channels
-5. Compute the average reference or reference to Cz
+
+1. Interpolate the bad channels
+2. Reject epochs containings artifacts while ignoring the bad channels: 80uV threshold criterion and 30uV jumps
+3. Compute the ERP based on averaging parameters 
+4. Compute the average reference or reference to Cz
 
 You can create and save your averaging parameters to re-load it in a future use of this script.
 If no merging condition and no events are given, each file will be averaged on all its epochs.
