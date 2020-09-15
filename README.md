@@ -10,7 +10,7 @@ All steps can be skiped. All default values can be modified.
 
 A log is generated after each run to explain what was done to the files.
 
-*For more information on how to get started, please refer to the **User Manual**.*
+*For more information on how to get started, please refer to the **[User Manual](UserManuel.md)**.*
 
 **Script order and details:**
 
