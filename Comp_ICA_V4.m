@@ -120,8 +120,8 @@ if strcmpi(PromptICA,'YES') && strcmpi(PromptICAAlgo, 'AMICA')
             if ~exist([p2 '\Mpich2_1.4\mpich2-1.4-win-x86-64.msi'],'file')
                 try
                     % Downloading Mpich2 and storing in folder
-                    urlwrite('http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-x86-64.msi',...
-                        [p2 '\Mpich2_1.4\mpich2-1.4-win-x86-64.msi']);
+                    websave([p2 '\Mpich2_1.4\mpich2-1.4-win-x86-64.msi'],...
+                        'http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-x86-64.msi')
                 catch
                     sprintf('ERROR when reading the Mpich2 web certificate. Please restart MATLAB as administrator (right button click)')
                 end
@@ -133,8 +133,8 @@ if strcmpi(PromptICA,'YES') && strcmpi(PromptICAAlgo, 'AMICA')
             if ~exist([p2 '\Mpich2_1.4\mpich2-1.4-win-ia32.msi'],'file')   
                 try
                     % Downloading Mpich2 and storing in folder
-                    urlwrite('http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-ia32.msi',...
-                        [p2 '\Mpich2_1.4\mpich2-1.4-win-ia32.msi'])
+                    websave([p2 '\Mpich2_1.4\mpich2-1.4-win-ia32.msi'],...
+                        'http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-ia32.msi')
                 catch
                     sprintf('ERROR when reading the Mpich2 web certificate. Please restart MATLAB as administrator (right button click)')
                 end
