@@ -189,8 +189,73 @@ Related to the previous prompt, you will have to determine suffixes for each fil
 Select the folders on which you would like to apply ICA decomposition and/or reject specific ICA components. 
 
 
+### 2.6 ICA Computation
 
-### 2.X Log File
+![](Screenshots/ICA_Computation.png)
+
+If you see these outputs in MATLAB's Command Window it means that the ICA decomposition is ongoing.
+
+
+### 2.7 ICA Rejection
+#### 2.7.1 All Components
+
+![](Screenshots/ICA_ClassifierReject.png)
+
+These 3 displays indicate the results of the ICLabel classifier for all the components (here 1-63 components). You can click on the number of any of these components to have a closer look at its decomposition (*see* [Chapter 2.7.2](#2.7.2-single-component)). \
+In the middle, you will find a table in which you can report which components should be rejected. There is already a pre-selection based on the classifier (i.e. all components which are not labelled ```Brain``` are de facto pre-selected). You can press the ```Clear``` button if you prefer to define the list manually. 
+
+**Once you are done, press on the cross X on the top-right corner and the code will resume**.
+
+#### 2.7.2 Single Component
+
+![](Screenshots/ICA_SingleCompReject.png)
+
+Once you click on any component number a display like this will pop-up. \
+It is based on the display from the ICLabel plugin, specifically you find:
+```
+1) The topography of the component and i) the total variance accounted for by the component (here component number 5) and ii) the results of the classifier on the right. [top left]
+2) The component activity over time (in ms) [top right].
+3) A full representation of the component activity over time using color codes (e.g. useful for detecting eyes or cardiac artifacts) [bottom left].
+4) The localization of the dipole(s) of the component in the brain space with the residual variance (RV; i.e. localization accuracy, should be < 15%) [bottom middle].
+5) The power spectrum of the component activity [bottom right].
+```
+
+#### 2.7.3 Visualization of Result
+
+*ASR Visualization scheme*
+![](Screenshots/ICA_VisualizeChanges.png)
+
+Here you have the possibility to visualize the changes that will occur to the EEG file activity if you decide to reject the components that you selected. \
+```
+- Press E to remove the epochs segmentation.
+- Press O to only see the "old" EEG file (before IC rejection).
+- Press N to only see the "new" EEG file (after IC rejection).
+- Press B to see both EEG files superimposed.
+```
+
+*EEGLAB Visualization scheme*
+![](Screenshots/ICA_VisualizeChangesEEGLAB.png)
+
+This EEGLAB built-in activity visualization will pop-up if the script cannot use ASR Visualization scheme (*known to be instable*).
+
+*Closing Visualization*
+![](Screenshots/ICA_CloseVisualization.png)
+
+This prompt enables you to close all figures when you are done and also provides you with an indication regarding the amount of the original EEG data that will be preserved after IC rejection.
+
+**⚠️ DO NOT CLOSE THIS TABLE BEFORE YOU ARE FINISHED VISUALIZING THE CURRENT FILE ⚠️.**
+
+#### 2.7.4 Confirm Rejection
+
+![](Screenshots/ICA_ConfirmReject.png)
+
+Finally, this is a last recall/warning before you actually apply the IC rejection. \
+If you press on ```Cancel``` or you close the window, the script will re-run the steps in [Chapter 2.7](###2.7-ica-rejection) until you are satisfied with you results.
+
+Once you are satisfied, press on ```OK```.
+
+
+### 2.8 Log File
 
 Similar to the other scripts a ICAlog_*date*.txt will be generated and will contain a summary of the ICA decomposition and/or rejection parameters and results.
 
