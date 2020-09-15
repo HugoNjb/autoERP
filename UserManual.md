@@ -21,114 +21,135 @@
 
 ## 1. Filtering_epoching.m
 
-**⚠️ Keep the defaults values if you don't know what you are doing!**
+**⚠️ Leave the defaults values if you don't know what you are doing!**
 
 ### 1.1 Settings
 
-With your raw EEG files (.bdf or .set 64 channels only), you will need to:
+With your raw EEG files (.bdf or .set 64 channels only), you will be able to:
 
 1) Filter their signals
 
-2) Re-specify their trigger (accept inputs from .mrk files)
+2) Re-specify their triggers (accept inputs from .mrk files)
 
 3) Epoch them based on your design.
 
 ![](Screenshots/1.png)
 
-This first prompt allows you to indicate to the script which of these three steps you want to do. Keep in mind that everything is skippable to allow flexibility.
+This first prompt allows you to indicate to the script which of these three steps you want to do. \
+Keep in mind that everything is skippable to allow flexibility.
 
 In your first run, you should not have any epoching parameters. These parameters will create themselves after our first epoching.
+
 
 ### 1.2 Parameters
 
 ![](Screenshots/2.png)
 
 This second prompt contains all the basic parameters for the steps you choose.
-Thus, if you decided to not filter your data on the last prompt, the question of the frequency band pass will not be displayed.
+Thus, if you decided not to filter your data on the last prompt, the question of the frequency band pass will not be displayed.
 
-1) For the extension of your data, you may enter a suffix with the extention. Ex: *"Cond1.bdf"*. In this case, only the bdf files finishing by *"Cond1"* will be loaded.
+1) For the extension of your data, you may enter a suffix. \
+Ex: *"Cond1.bdf"*. In this case, only the bdf files finishing by *"Cond1"* will be loaded.
 
-2) After filtering, a filtered .set copy of your files will be saved with this suffix to their name.
-With the default value, your filetered files will be named *FileName_filtered.set*.
+2) After filtering, a filtered .set copy of your files will be saved. \
+With the default value, your filetered files will be named *FileName_filtered.set*. \
 The same logic is applied for the saved epoched files.
 
-3) The lower and upper thresholds of the epoching interval. With the default values, the epoch will include 100ms pre-stimuli, and 700ms post-stimuli.
-**A space needs to be input between the two values.**
+3) The lower and upper thresholds of the epoching interval. \ 
+With the default values, the epoch will be restricted from 100ms pre-stimulus to 700ms post-stimulus. \
+**A space needs to separate the two values (e.g. [100 700]).**
 
-4) If there is a trigger delay between the trigger and the real display on the subject screen, you can correct it here.
+4) If there is a trigger delay between the trigger data imported from the .mrk file and the real display on the experimental screen, you can adjust it here.
+
 
 ### 1.3 Algorithms options
 
 ![](Screenshots/3.png)
 
-Three external algorithms are implemented in this filtering pipeline in addition to the baseline correction. Links can be found in the Dependencies section of the [README.md](README.md).
-CleanLine to efficiently filter and remove sinusoidal noise.
-ASR to clean non-sinusoidal high-variance bursts.
-BLINKER to detect and reject epochs containing an eye blink during stimulus display.
+Three external algorithms are implemented in this filtering pipeline in addition to the baseline correction. \
+Links can be found in the Dependencies section of the [README.md](README.md). \
+```
+1) CleanLine to filter and remove sinusoidal noise.
+2) ASR to clean non-sinusoidal high-variance bursts.
+3) BLINKER to detect and reject epochs containing an eye blink during stimulus display.
+```
 
-In case you choose to not filter or epoch during the [settings prompt](#11-settings), this prompt might differ.
+In case you choose not to filter or epoch during the [settings prompt](#11-settings), this prompt might differ.
+
 
 ### 1.4 Files path
 
-1) The script will then ask you to select the folder containing all the files you want to load. **It does not matter if this folder contains sub-folders.
-It will take that into account and copy the folder-tree when saving the filtered and epoched .set files.**
-It will search for the files finishing by what you input in the first line of the [parameters prompt](#12-parameters).
+1) The script will then ask you to select the folder containing all the files you want to load. **It does not matter if this folder contains sub-folders.** \
+It will take it into account and reproduce your folder-tree when saving the filtered and epoched .set files. \
+It will search for the files ending with the suffixe you inputed in the first line of the [parameters prompt](#12-parameters).
 
-2) In the same fashion, if you decided to re-specify your triggers based on .mrk files, it will ask you the folder there are in.
+2) In the same fashion, if you decide to re-specify your triggers, it will ask you for the path of the folder there are stored in. \
 **The script will automatically link the .mrk files to their raw counter-part based on their names.
-The file names need to be identical. If not, the .mrk files that could not be found by the script will be listed in the log.txt file at the end of processing.**
+The file names need to be identical. If not, the .mrk files that could not be found by the script will be listed in the log.txt file at the end of the process.**
 
-3) Enter the folder where you want you filtered and epoched file to be saved.
-These files will have the same names and sub-folder tree as your raw files, but with the suffix you input during the [parameters prompt](#12-parameters).
+3) Enter the folder where you want you filtered and epoched file to be saved. \
+These files will have the same names and sub-folder tree structure as your raw files, but with the suffix you inputed during the [parameters prompt](#12-parameters).
+
 
 ### 1.5 Subject specific analyses
 
 ![](Screenshots/4.png)
 
-You can decide to only choose some files to pre-processed. It can be useful if you decide to include one or two participants more after the first analyses, or if you had a problem on one specific file.
+You can decide to only choose a subset of files to be pre-processed. \ 
+It can be useful if you decide to include one or two additional participants after a first analysis, or if you've encountered a problem on one specific file.
 
 If you choose the specific files option, a prompt will be displayed asking you to tick the files you want to run the script on.
 
+
 ### 1.6 Epoching parameters
 
-If you decided to import .mrk files and/or to epoch your data, a series of prompt will arrive to know your conditions and their triggers' caracteristics. 
+If you decided to import .mrk files and/or to epoch your data, a series of prompt will popup to determine your conditions and their triggers' caracteristics. \
 **When you are done, simply close the prompt to go to the next one.**
 
 ![](Screenshots/5.png)
 
-In the first prompt, the script is asking you if you have different conditions within your files. Each condition names as they appear on your files need to be written on separeted lines. It will treat every condition separetly, with different triggers' caracteristics.
+In the first prompt, the script is asking you if you have different conditions within your files. \
+Each condition names as they appear on your files need to be written on separated lines. \
+It will treat every condition separately, with their corresponding unique triggers' caracteristics.
 
-If you don't have conditions or if the conditions are identical in terms of events and do not need to be differenciated, empty the cells. **Specify condition _ONLY_ if you have different triggers for them. If they are identical, like a within-subject condition, no need to specify anything.**
+If you don't have conditions or if the conditions are identical in terms of events and do not need to be differenciated, empty the cells. \ 
+**Specify condition _ONLY_ if you have different triggers for them. If they are identical, like a within-subject condition, no need to specify anything.**
 
-**⚠️ Please, do not use recursive condition names in your nomenclature. Ex: "CondAB" and "CondA". Or condition names repeating another code. Ex: "Sbj12_2_CondSbj". In these cases, the script might give you a prompt warning you of your bad nomenclature.**
-
+**⚠️ Please, do not use recursive condition names in your nomenclature, ex: "CondAB" and "CondA", or condition names repeating another code, ex: "Sbj12_2_CondSbj".** \
+**In these cases, the script might return a warning regarding the bad nomenclature.**
 
 ![](Screenshots/6.png)
 
-In this prompt, you will need to list the trigger name in the first column **as they appear in the raw file, or as they appear in the .mrk file if you re-triggered the event**, how you want them to be renamed in the second, their duration in the third to indicate when to remove the epoch in the presence of an eye-blink (conditional to the [BLINKER algorithm](#13-algorithms-options)), and a tick if you want to epoch the event or just erase it.
+In this prompt, you will need to list the trigger names in the first column **as they appear in the raw file, or as they appear in the .mrk file if you re-triggered the event**, how you want them to be renamed in the second column, their duration in order to indicate when to remove the epoch in the presence of an eye-blink (conditional to the [BLINKER algorithm](#13-algorithms-options)) in the third one, and a tick if you want to epoch the event or just erase it in the last column.
 
-This prompt will be shown for every condition you entered in the last prompt. Thus, if you have three conditions, the prompt will be displayed three times for each of them. If you have none, only one will appear.
+This prompt will be shown for every condition you entered in the previous prompt. \ 
+Thus, if you have three conditions, the prompt will be displayed three times for each of them. If you have none, only one will appear.
 
-After these, you will have to choose where you want the parameters to be saved (default name "Marker_Parameters.mat"). It will allow us to load these parameters the next time you run the script on the same dataset by saying 'Y' in the last line of the [settings prompt](#11-settings).
+After these, you will have to choose where you want the parameters to be saved (default name: "Marker_Parameters.mat").\ 
+It will allow you to load these parameters the next time you run the script on the same dataset by saying 'Y' in the last line of the [settings prompt](#11-settings).
+
 
 ### 1.7 Output files
 
 That's it ! Your files are ready to be filtered, re-triggered, and epoched.
 
-At the end of processing, a log.txt file is created where your files are saved. It shows all the details of what was done during the processing. Additionnaly, a to_interpolate.csv file is created at the same place. It will allow us later on to indicate to the [ERPs.m](ERPs.m) script which channels are to be interpolated. Do not touch it at the moment.
+At the end of the process, a log.txt file is created where your files are saved. It shows all the details of what was done during the processing. \ 
+Additionnaly, a to_interpolate.csv file is created at the same place. It will allow you to later indicate to the [ERPs.m](ERPs.m) script which channels are to be interpolated. \ Do not touch it at the moment.
+
 
 ## 2 Comp_ICA.m
 
-With this script, you can compute ICA to detect and reject components like eye-blinks.
+With this script, you can compute ICA to detect and reject artifacts components such as eye-blinks, eyes and muscles movements or even cardiac artifacts.
 
-To use this script, you will need filtered non-epoched data. If you want to run ICA, it is thus adviced to only filter your data using the Filtering_epoching script, to run this script, and only then to re-run the Filtering_epoching script selecting only the epoching option.
+To use this script, your data will need to be **filtered and unepoched**. \
+If you want to run ICA, it is thus adviced to only filter your data using the Filtering_epoching.m script, to run this script, and only then to re-run the Filtering_epoching.m script selecting only the epoching option.
 
 *Details to be written.*
 
 
 ## 3 ERPs.m
 
-Now that we have filtered and epoched data, we can pre-process the signal a tad bit more with interpolation and artefact rejections before computing their Evoked Response Potentials referenced to Cz or average referenced. See the [README.md](README.md) for more details.
+Now that you have filtered and epoched your data, your can pre-process the signal a tad bit more with interpolation and artefacts ejection before computing their 0ed Response Potentials referenced to Cz or average referenced. See the [README.md](README.md) for more details.
 
 The averaging for ERP computation is compatible to all designs as long as you have a coherent nomenclature to support it. It means the conditions' name need to be written in the same way somewhere on all files' name or in a sub-folder.
 
