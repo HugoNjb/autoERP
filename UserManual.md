@@ -144,7 +144,56 @@ With this script, you can compute ICA to detect and reject artifacts components 
 To use this script, your data will need to be **filtered and unepoched**. \
 If you want to run ICA, it is thus adviced to only filter your data using the Filtering_epoching.m script, to run this script, and only then to re-run the Filtering_epoching.m script selecting only the epoching option.
 
-*Details to be written.*
+
+### 2.1 ICA Decomposition and Algorithms
+
+![](Screenshots/ICA_ComputeICA.png)
+![](Screenshots/ICA_Algorithms.png)
+
+This first two prompts ask you, first, if you want to compute the independent component analysis (ICA; you should say no if the ICA decomposition has already been done on your files) and, if yes, in the second prompt you can decide which ICA algorithm to use (AMICA is recommanded since it is the [best performing algorithm](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030135))
+
+
+### 2.2 MPICH2
+![](Screenshots/ICA_MPICH2.png)
+
+If you selected AMICA as the ICA algorithm and it is the first time you are running it, the script will download and run the installation of the [MPICH2 software](https://www.mpich.org/) (required to run AMICA). In case the download and/or the installation, follow these links: \
+[64-bits Windows machines](http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-x86-64.msi)
+[32-bits Windows machines](http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-ia32.msi)
+
+
+### 2.3 Loading and Saving Data
+![](Screenshots/ICA_LoadData.png)
+
+Indicate the most upper folder containing all your **epoched data**. 
+
+![](Screenshots/ICA_SaveData.png)
+
+Indicate where to save your data files i) containing the ICA decomposition matrices and ii) the ones for which you will have rejected specific components.  
+
+
+### 2.4 Suffixes
+
+![](Screenshots/ICA_FileNames.png)
+
+Related to the previous prompt, you will have to determine suffixes for each file type to be imported/exported: \
+```
+1) Enter the suffixe of the epoched data files that you want to load.
+2) Enter the suffixe of the data already containing the ICA decomposition matrix OR the suffixe that will used to save your future ICA decomposition matrix-containing files.
+3) Enter the suffixe of the data files that will be exported after the rejection of specific components.
+```
+
+### 2.5 Folders to Include
+
+![](Screenshots/ICA_IncludedFolders.png)
+
+Select the folders on which you would like to apply ICA decomposition and/or reject specific ICA components. 
+
+
+
+### 2.X Log File
+
+Similar to the other scripts a ICAlog_*date*.txt will be generated and will contain a summary of the ICA decomposition and/or rejection parameters and results.
+
 
 
 ## 3 ERPs.m
