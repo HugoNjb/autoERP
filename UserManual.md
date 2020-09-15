@@ -214,7 +214,7 @@ If you see these outputs in MATLAB's Command Window it means that the ICA decomp
 
 ![](Screenshots/ICA_ClassifierReject.png)
 
-These 3 displays indicate the results of the ICLabel classifier for all the components (here 1-63 components). You can click on the number of any of these components to have a closer look at its decomposition (*see* [Chapter 2.7.2](#2.7.2-single-component)). \
+These 3 displays indicate the results of the ICLabel classifier for all the components (here 1-63 components). You can click on the number of any of these components to have a closer look at its decomposition (*see* [Chapter 2.7.2](#272-single-component)). \
 In the middle, you will find a table in which you can report which components should be rejected. There is already a pre-selection based on the classifier (i.e. all components which are not labelled ```Brain``` are de facto pre-selected). You can press the ```Clear``` button if you prefer to define the list manually. 
 
 **Once you are done, press on the cross X on the top-right corner and the code will resume**.
@@ -263,7 +263,7 @@ This prompt enables you to close all figures when you are done and also provides
 ![](Screenshots/ICA_ConfirmReject.png)
 
 Finally, this is a last recall/warning before you actually apply the IC rejection. \
-If you press on ```Cancel``` or you close the window, the script will re-run the steps in [Chapter 2.7](###2.7-ica-rejection) until you are satisfied with you results.
+If you press on ```Cancel``` or you close the window, the script will re-run the steps in [Chapter 2.7](#27-ica-rejection) until you are satisfied with you results.
 
 Once you are satisfied, press on ```OK```.
 
