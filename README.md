@@ -35,7 +35,7 @@ You can write in it the bad channels that will have to be interpolated and load 
 
 ### 2) comp_ICA.m (optionnal)
 This script will automatically computed ICA on all the loaded files and will prompt the user to select the components that should be rejected for each of the files. 
-The components rejection graphical interface is based on the (ICLabel)[https://sccn.ucsd.edu/wiki/ICLabel] display. 
+The components rejection graphical interface is based on the [ICLabel](https://sccn.ucsd.edu/wiki/ICLabel) display. 
 
 
 ### 3) ERPs.m
