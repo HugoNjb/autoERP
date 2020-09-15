@@ -170,7 +170,7 @@ This first two prompts ask you, first, if you want to compute the independent co
 ![](Screenshots/ICA_MPICH2.png)
 
 If you selected AMICA as the ICA algorithm and it is the first time you are running it, the script will download and run the installation of the [MPICH2 software](https://www.mpich.org/) (required to run AMICA). In case the download and/or the installation, follow these links: \
-[64-bits Windows machines](http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-x86-64.msi)
+[64-bits Windows machines](http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-x86-64.msi) \
 [32-bits Windows machines](http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-ia32.msi)
 
 
