@@ -1,33 +1,37 @@
 # autoERP
-LNS automated Matlab scripts for pre-processing raw EEG signal into filtered epoched data (Filtering_epoching.m), doing ICA to reject blink components (Comp_ICA.m), and computing ERPs after interpolation and artefact rejection (ERPs.m).
+LNS automated Matlab scripts for pre-processing raw EEG signal into filtered epoched data (Filtering_epoching.m), performing Independent Components Analyses (ICA) (Comp_ICA.m), and computing ERPs after interpolation and artefacts rejection (ERPs.m).
 
-**⚠️ Currently only compatible with raw .bdf and .set files with 64 channels**
+**⚠️ Currently only compatible with raw .bdf (BioSemi) and .set files with 64 channels**
 
 ## Description:
 Flexible and adaptable to all designs and folder trees.
 
 All steps can be skiped. All default values can be modified.
 
-A log is generated after each run to explicit what was done to the files.
+A log is generated after each run to explain what was done to the files.
 
-*For more information to how to get started, please refer to the **User Manual**.*
+*For more information on how to get started, please refer to the **User Manual**.*
 
 **Script order and details:**
 
+
 ### 1) Filter_epoching.m
-This script filters, implements .mrk and epochs .bdf or .set.
-You can create and save your epoching parameters in a .mat file to re-load it in a future use of this script.
+This script filters, imports marker files (.mrk) and epochs .bdf or .set files.
+You can create and save your epoching parameters in a .mat file to re-load them in a future use of this script.
 
 Filtering pipeling:
-1. Re-reference
+1. Re-referencing
 2. Bandpass filtering
-3. Remove sinusoidal noise (CleanLine)
-4. Detect blinks
-5. ASR filtering
-6. Remove the detected blinks in 4.
-7. Baseline correction
+3. Removing sinusoidal noise (CleanLine)
+4. Detecting blinks (Blinker)
+5. Non-sinusoidal noise filtering (ASR)
+6. Removing the blinks detected in 4.
+7. Applying baseline correction
 
-At the end of epoching, a to_interpolate.xlsx file is generated. You can write in it the bad channels and load them during the ERPs script. Do not erase the first example line of the to_interpolate.xlsx file.
+At the end of the epoching process, a to_interpolate.xlsx file is generated. \
+You can write in it the bad channels that will have to be interpolated and load them during the ERPs script. \
+**Do not erase the first example line of the to_interpolate.xlsx file.**
+
 
 ### 2) comp_ICA.m (optionnal)
 After having manually computed ICA, you can load the concerned .set to choose the components you want to remove.
@@ -43,9 +47,9 @@ For each folder, you will have the topography of the component, the scroll of th
 3. Compute the ERP based on averaging parameters 
 4. Compute the average reference or reference to Cz
 
-You can create and save your averaging parameters to re-load it in a future use of this script.
-If no merging condition and no events are given, each file will be averaged on all its epochs.
-At the end of the run, a .xlsx file named Ntrials is generated. It contains the number of epochs at the start, deleted during artifacts rejection, and in the final ERPs.
+You can create and save your averaging parameters to re-load them in a future use of this script.
+If no merging condition and no events are given, each file will be averaged over all its epochs.
+At the end of the run, a file named Ntrials.xlsx is generated. It contains the number of epochs at the start, deleted during artifacts rejection, and in the final ERPs.
 
 ## Dependencies
 | PLUGINS | Description |
@@ -60,7 +64,7 @@ Isolated functions:
 * [saveeph](https://sites.google.com/site/cartoolcommunity/files)
 * [natsort](https://ch.mathworks.com/matlabcentral/fileexchange/47434-natural-order-filename-sort)
 
-The dependencies are already included and loaded automatically in the Functions folder.
+The dependencies are already included in the Functions folder and loaded automatically.
 
 ## Authors
 [**Hugo Najberg**](https://www3.unifr.ch/med/spierer/en/group/team/people/194247/8d66b)\
