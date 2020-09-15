@@ -34,10 +34,8 @@ You can write in it the bad channels that will have to be interpolated and load 
 
 
 ### 2) comp_ICA.m (optionnal)
-After having manually computed ICA, you can load the concerned .set to choose the components you want to remove.
-For each folder, you will have the topography of the component, the scroll of their activation and the full eeg data scroll to take your decision. ! This decision is asked only once per subfolder !
-
--> After rejecting the components, you can epoch them wihout filtering them with the Filter_epoching.m script with your saved epoching parameters.
+This script will automatically computed ICA on all the loaded files and will prompt the user to select the components that should be rejected for each of the files. 
+The components rejection graphical interface is based on the (ICLabel)[https://sccn.ucsd.edu/wiki/ICLabel] display. 
 
 
 ### 3) ERPs.m
