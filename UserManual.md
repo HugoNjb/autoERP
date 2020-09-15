@@ -81,14 +81,14 @@ In case you choose not to filter or epoch during the [settings prompt](#11-setti
 
 1) The script will then ask you to select the folder containing all the files you want to load. **It does not matter if this folder contains sub-folders.** \
 It will take it into account and reproduce your folder-tree when saving the filtered and epoched .set files. \
-It will search for the files ending with the suffixe you inputed in the first line of the [parameters prompt](#12-parameters).
+It will search for the files ending with the suffixe you input in the first line of the [parameters prompt](#12-parameters).
 
 2) In the same fashion, if you decide to re-specify your triggers, it will ask you for the path of the folder there are stored in. \
 **The script will automatically link the .mrk files to their raw counter-part based on their names.
 The file names need to be identical. If not, the .mrk files that could not be found by the script will be listed in the log.txt file at the end of the process.**
 
 3) Enter the folder where you want you filtered and epoched file to be saved. \
-These files will have the same names and sub-folder tree structure as your raw files, but with the suffix you inputed during the [parameters prompt](#12-parameters).
+These files will have the same names and sub-folder tree structure as your raw files, but with the suffix you input during the [parameters prompt](#12-parameters).
 
 
 ### 1.5 Subject specific analyses
@@ -149,9 +149,11 @@ If you want to run ICA, it is thus adviced to only filter your data using the Fi
 
 ## 3 ERPs.m
 
-Now that you have filtered and epoched your data, your can pre-process the signal a tad bit more with interpolation and artefacts ejection before computing their 0ed Response Potentials referenced to Cz or average referenced. See the [README.md](README.md) for more details.
+Now that you have filtered and epoched your data, your can pre-process the signal a tad bit more with interpolation and artefacts ejection before computing their Event-Related Potentials (ERPs) referenced either to Cz or average referenced. See the [README.md](README.md) for more details.
 
-The averaging for ERP computation is compatible to all designs as long as you have a coherent nomenclature to support it. It means the conditions' name need to be written in the same way somewhere on all files' name or in a sub-folder.
+The averaging process of ERPs is compatible with all designs as long as you have a coherent nomenclature to support it. \
+It means that the conditions' name need to be written in the same way somewhere on all files' name or in a sub-folder.
+
 
 ### 3.1 Settings
 
@@ -159,69 +161,82 @@ The averaging for ERP computation is compatible to all designs as long as you ha
 
 In this first prompt, you will tell the script what you want to do.
 
-First, do you want to merge datasets ? In the case you have several files for a same subject in a same condition, you can say 'Y' to have all the same-subject and same-condition files to be loaded and merged together into one whole file. It can be useful if you stoped your recording and saved two separated files during your experiment for example. **The merging will load all files having the same condition name contained within one sub-folder.** The specification of the conditions comes in the [section 3.5](#35-erps-parameters). If you don't specifiy conditions then, the merging will just load everything in each sub-folders.
+First, do you want to merge datasets ? In the case you have several files for a same subject in a same condition, you can say 'Y' to have all the same-subject and same-condition files to be loaded and merged together into one whole file. It can be useful if you stoped your recording and saved two separated files during your experiment for example. \
+**The merging will load all files having the same condition name contained within one sub-folder.** \
+The specification of the conditions will be done in [section 3.5](#35-erps-parameters). If you don't specify conditions then, the merging will just load everything in each sub-folders.
 
 On the first run, you should not have averaging parameters. This is a system akin to the [epoching parameters](#16-epoching-parameters).
 
-You can also want to interpolate bad channels. If 'Y', the indicated bad channels will be ignored for the artefact rejection and then interpolated using multi-quadratic interpolation. The link to this interpolation algorithm is in the Dependencies section of the [README.md](README.md).
+Possibly, you will want to interpolate bad channels. If 'Y', the provided bad channels will be ignored for the artefacts rejection phase and then interpolated using multi-quadratic interpolation. The link to this interpolation algorithm can be found in the Dependencies section of the [README.md](README.md).
 
-If you write having *Interpolation parameters*, the script will ask you for the *to_interpolate.csv* file created at the end of the epoching. In this file, you have one row for each subject at each condition. You need to indicate their bad channels by putting their channel numbers in the next columns in the same fashion as the first example line. **Do not delete the first example line !** If you say not having *Interpolation parameters* but still ask to interpolate, a table where you need to tick all the bad channels will be displayed (very slow and tedious; not adviced method).
+If you specify already having *Interpolation parameters*, the script will ask you for the *to_interpolate.csv* file created at the end of the epoching process. In this file, you will find one row for each subject for each condition. You need to indicate their bad channels by putting the corresponding channel numbers in the next columns in the same fashion as the first example line. \ 
+**Do not delete the first example line !** \ 
+If you indicate not having any *Interpolation parameters* but still ask to interpolate, a table where you need to tick all the bad channels will be displayed (very slow and tedious; we do not recommend this method).
 
-The next two lines ask if you want your ERPs referenced to Cz and/or average referenced ERPs. 
+The next two lines ask if you want your ERPs referenced to Cz and/or perform average referencing at the end. 
 
-The last line ask you if you want to save the signal just before the averaging. In this case, you will have epoched data pre-processed through artefact rejection and interpolation, but not averaged into ERPs.
+The last line ask you if you want to save the signal just before the averaging. In this case, you will have epoched data pre-processed including artefacts rejection and interpolation, but not averaged into ERPs.
+
 
 ### 3.2 Parameters
 
 ![](Screenshots/8.png)
 
-In this prompt, the script asks you for the suffix of your epoched data to know which files to load, akin to what is done in the filtering_epoching script's [second prompt](#12-parameters). It also asks you which suffix you want to add to the final ERP files.
+In this prompt, the script asks you for the suffix of your epoched data to know which files to load, akin to what is done in the filtering_epoching.m script's [second prompt](#12-parameters). It also asks you which suffix you want to add to the final ERP files to be exported.
 
-The artefact rejection means that all epochs containing one frame over the input threshold (80uV by default) will be excluded. If you don't want to use this method, erase the line's value.
+The artefact rejection refers to a method in which all epochs containing one frame over the input threshold (80uV by default) will be excluded. \
+If you don't want to use this method, erase the line's value.
+
 
 ### 3.3 Files path
 
-1) The script will then ask you to select the folder containing all the epoched data you want to load. **It does not matter if this folder contains sub-folders.
-It will take that into account and copy the folder-tree when saving the final ERP files.**
+1) The script will then ask you to select the folder containing all the epoched data you want to load. **It does not matter if this folder contains sub-folders. ** \
+It will take that into account and copy the folder-tree structure when saving the final ERP files.
 It will search for the files finishing by what you input in the first line of the [parameters prompt](#32-parameters).
 
 2) Enter the folder where you want you filtered and epoched file to be saved.
-These files will have the same names than your loaded epoched files, but with the suffix you input during the [parameters prompt](#32-parameters). The folder-tree will rearranged to follow a classification by condition and event averaging.
+These files will have the same names than your loaded epoched files, but with the suffix you input during the [parameters prompt](#32-parameters). \ 
+The folder-tree will be rearranged to follow a classification by condition and event averaging.
+
 
 ### 3.4 Subject specific analyses
 
 Same as [section 1.5](#15-subject-specific-analyses).
 
+
 ### 3.5 ERPs parameters
 
-The script will first ask you for the marker_parameters.mat that have been saved during your first epoching run (see [section 1.6](#16-epoching-parameters)) to give you the table of the triggers' name you used during epoching. It is purely there to help you recall which names you gave to your triggers, you can skip this help by closing the window.
+The script will first ask you for the marker_parameters.mat file that have been saved during your first epoching run (see [section 1.6](#16-epoching-parameters)) to show you again the table of the triggers' name you used during epoching. It is purely there to help you recall which names you gave to your triggers. \ 
+You can skip this help by closing the window.
 
 **_For each of the following prompt, close the window to continue._**
 
 ![](Screenshots/9.png)
 
-Same logic as in the [epoching parameters](#16-epoching-parameters). Write the condition names you used in your nomenclature in each line of this prompt.
-If you don't have conditions in your design, delete the default cells' value.
+Same logic as in the [epoching parameters](#16-epoching-parameters): write the condition names you used in your nomenclature in each line of this prompt.
+If you don't have conditions in your design, **delete the default cells' value.**
 
 ![](Screenshots/10.png)
 
-For each condition you specified, a prompt will appear for you to design your ERPs' averagin parameters.
+For each condition you specified, a prompt will appear for you to design your ERPs' averaging parameters.
 
 Each non-empty column corresponds to the average of all specified triggers in the column for this condition. In the example of this screenshot, I will have three different ERPs for my condition COND1: one will be the average of the A1 and A2 triggers together, one the average of the A1 triggers only, one the average of the B3 and B4 triggers together.
 
-After these, you will have to choose where you want the parameters to be saved (default name "Averaging_parameters.mat"). It will allow us to load these averaging parameters the next time you run the script on the same dataset by saying 'Y' during the [settings prompt](#31-settings).
+After these, you will have to choose where you want the parameters to be saved (default name: "Averaging_parameters.mat"). \
+It will allow you to load these averaging parameters the next time you run the script on the same dataset by saying 'Y' during the [settings prompt](#31-settings).
 
-Next it will ask you to indicate the path of the to_interpolate.csv file or to indicate the bad channels in a table based on your [settings](#31-settings).
+Next it will ask you to indicate the path of the to_interpolate.csv file or to determine the bad channels in a table based on your [settings](#31-settings).
+
 
 ### 3.6 Output files
 
-That's it ! Your epoched data is ready to be pre-processed with interpolation of bad channels, artefact rejections, rejection of epochs containing jumps of more than 30uV from one time-frame to another, averaging into ERPs, and re-referencing.
+That's it ! Your epoched data have been pre-processed including the interpolation of bad channels, artefacts rejection, rejection of epochs containing jumps of more than 30uV from one time-frame to another, averaging into ERPs, and re-referencing.
 
 The ERPs are saved into folders per condition, and sub-folders per ERP's type.
 
-A log.txt is written and saved with the ERPs to explicit everything that was done to the data.
+A log.txt file is exported and saved with the ERPs to explain everything every steps of the preprocessing applied on your data.
 
-A Ntrials.xlsx is written, containing all details of epoch rejection per files (see screenshot bellow).
+A Ntrials.xlsx file is written, containing all the numbers of rejected epochs for each file (see screenshot bellow).
 
 ![](Screenshots/11.png)
 
@@ -231,9 +246,9 @@ Each line corresponds to an ERP. The columns represent:
 
 2) The initial number of epochs.
 
-3) The number of epochs rejected during the artefact rejections.
+3) The number of epochs rejected during the artefacts rejection.
 
-4) The percentage of epochs rejected during the artefact rejections.
+4) The percentage of epochs rejected during the artefacts rejection.
 
 5) The number of epochs rejected because of a 30uV jumps from one time-frame to another.
 
@@ -245,6 +260,7 @@ Each line corresponds to an ERP. The columns represent:
 
 It is adviced that you do not give bad channels to interpolate during your first run of ERPs computation.
 
-After you have a first set of uninterpolated ERPs, you can see the quality of the signal with the percentages of epochs rejected during artefact rejection. It will give you a good indicator of which file needs to be interpolated. The uninterpolated ERPs in themselves are also a good visual indicator of which files need attention.
+After you have a first set of uninterpolated ERPs, you can see the quality of the signal with the percentages of epochs rejected during artefact rejection. It will give you a good indicator of which file may require channels interpolation. \ 
+The uninterpolated ERPs in themselves are also a good visual indicator of which files need attention.
 
-After having done this first run, you can change the to_interpolate.csv file and re-run the ERPs.m script easily by giving the averaging and interpolation parameters.
+After having done this first run, you can adjust the to_interpolate.csv file and re-run the ERPs.m script easily by providing the script with the averaging and interpolation parameters.
