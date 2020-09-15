@@ -52,11 +52,12 @@ At the end of the run, a file named Ntrials.xlsx is generated. It contains the n
 ## Dependencies
 | PLUGINS | Description |
 | ------ | ------ |
+| [EEGLAB v14.1.2b](https://github.com/sccn/eeglab) | Main software that manages most of the preprocessing and analyses toolboxes described in the table below |
 | [BLINKER v1.1.2](http://vislab.github.io/EEG-Blinks/) | BLINKER  is an automated pipeline for detecting eye blinks in EEG and calculating various properties of these blinks | 
 | [CleanLine v1.04](https://github.com/sccn/cleanline) | This plugin adaptively estimates and removes sinusoidal (e.g. line) noise from your ICA components or scalp channels using multi-tapering and a Thompson F-statistic |
 | [Clean_rawdata v2](https://github.com/sccn/clean_rawdata)| This plugin is used solely for the vis_artifacts.m function for the ICA script |
 |[EEGInterp](https://d-nb.info/1175873608/34)| This package provides multiquadratics interpolation algorithms which were deemed the best one tested for good signal quality |
-| [EEGLAB v14.1.2b](https://github.com/sccn/eeglab) | Main software that manages most of the preprocessing and analyses toolboxes described in the table below |
+|[ICLabel v1.1](https://github.com/sccn/ICLabel)|An automatic EEG independent component classifer plugin for EEGLAB |
 
 Isolated functions:
 * [saveeph](https://sites.google.com/site/cartoolcommunity/files)
