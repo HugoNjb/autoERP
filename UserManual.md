@@ -1,7 +1,7 @@
 # User Manual
 
 **Table of Contents**
-- [1. Filtering_epoching.m](#1-filtering-epochingm)
+- [1. Filtering epoching.m](#1-filtering-epochingm)
   * [1.1 Settings](#11-settings)
   * [1.2 Parameters](#12-parameters)
   * [1.3 Algorithms options](#13-algorithms-options)
@@ -9,7 +9,7 @@
   * [1.5 Subject specific analyses](#15-subject-specific-analyses)
   * [1.6 Epoching parameters](#16-epoching-parameters)
   * [1.7 Output files](#17-output-files)
-- [2 Comp_ICA.m](#2-comp-icam)
+- [2 Comp ICA.m](#2-comp-icam)
   * [2.1 ICA Decomposition and Algorithms](#21-ica-decomposition-and-algorithms)
   * [2.2 MPICH2](#22-mpich2)
   * [2.3 Loading and Saving Data](#23-loading-and-saving-data)
@@ -32,7 +32,7 @@
   * [3.7 Advice for interpolation](#37-advice-for-interpolation)
   
   
-## 1. Filtering_epoching.m
+## 1. Filtering epoching.m
 
 **⚠️ Leave the defaults values if you don't know what you are doing!**
 
@@ -150,7 +150,7 @@ At the end of the process, a log.txt file is created where your files are saved.
 Additionnaly, a to_interpolate.csv file is created at the same place. It will allow you to later indicate to the [ERPs.m](ERPs.m) script which channels are to be interpolated. \ Do not touch it at the moment.
 
 
-## 2 Comp_ICA.m
+## 2 Comp ICA.m
 
 With this script, you can compute ICA to detect and reject artifacts components such as eye-blinks, eyes and muscles movements or even cardiac artifacts.
 
