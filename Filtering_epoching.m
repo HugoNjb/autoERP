@@ -597,7 +597,8 @@ for sbj = 1:numel(FileList)
             %% Artifact Subspace Reconstruction
             % ASR : Non-stationary artifacts removal
             if strcmpi(bool_ASR,'Y')
-                EEG = clean_rawdata(EEG, -1, -1, -1, -1, 10, -1); 
+                % https://sccn.ucsd.edu/wiki/Artifact_Subspace_Reconstruction_(ASR)#The_option_.27availableRAM_GB.27_is_available_to_fix_the_length_of_final_output
+                EEG = clean_rawdata(EEG, -1, -1, -1, -1, 10, -1,'availableRAM_GB',floor(hlp_memfree/1000000000));
                 %% NEW (27.09.2019) --> TO DO !!! 
                 % The idea is to use the loaded resting-state files to use
                 % them to build the clean reference for ASR interpolation
