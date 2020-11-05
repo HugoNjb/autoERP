@@ -472,7 +472,7 @@ for sbj = 1:numel(FileList)
         if ImportMRK == 'Y'
 
             % opening the .mrk file and capturing its data (trigger type and latency)
-            filenameMRK = [mrk_folder SubPath '\' name_noe '.bdf.mrk'];
+            filenameMRK = [mrk_folder SubPath '\' name_noe '.mrk'];
             delimiter = '\t';
             startRow = 2;
             formatSpec = '%q%q%q%[^\n\r]';
