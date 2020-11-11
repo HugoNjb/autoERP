@@ -423,8 +423,8 @@ end
 time_start = datestr(now);
 
 % Run EEGLAB
-eeglab
-close(gcf)
+eeglab nogui
+% close(gcf)
 
 % set double-precision parameter
 pop_editoptions('option_single', 0);
@@ -570,8 +570,106 @@ for sbj = 1:numel(FileList)
             end
         end
         
-        %% Filtering
+         %% Import mrk
 
+        % Boolean to act if catching error later on
+        mrkname_noerror = 1;
+
+        if ImportMRK == 'Y'
+
+            % opening the .mrk file and capturing its data (trigger type and latency)
+            filenameMRK = [mrk_folder SubPath '\' name_noe '.mrk'];
+            delimiter = '\t';
+            startRow = 2;
+            formatSpec = '%q%q%q%[^\n\r]';
+            fileID = fopen(filenameMRK,'r');
+            % Trying to scan the file, if it creates an error, we create a log
+            % and go to the next file
+            try
+                dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'HeaderLines' ,startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');                        
+                fclose(fileID);
+            catch
+                mrkname_noerror = 0;
+                count_error = count_error +1;
+                error_log(count_error+1,1) = {filenameMRK};
+            end
+
+            % If no name mismatching
+            if mrkname_noerror                        
+                % deleting the structure EEG.event
+                EEG = rmfield(EEG,{'event','urevent'});
+
+                % Creating the new EEG.event and EEG.urevent structures based on the .mrk data
+                for row = 1:length(dataArray{1})
+                    EEG.event(row).latency = str2num(cell2mat(dataArray{1}(row)))+Error_TF;
+                    EEG.event(row).type    = str2num(cell2mat(dataArray{3}(row)));
+                    EEG.urevent(row).latency = str2num(cell2mat(dataArray{1}(row)))+Error_TF;
+                    EEG.urevent(row).type    = str2num(cell2mat(dataArray{3}(row)));
+                    EEG.event(row).urevent = row;
+                end
+            end
+
+            % If the user doesn't intend to filter or epoch, save the .set now
+            if (FILTER ~='Y') && (Epoch ~='Y')
+                NewFileNameMRK = [save_folder SubPath '\' name_noe '_importmrk.set'];
+                pop_saveset(EEG,NewFileNameMRK)  
+
+            % if there is a filtering and mrk importation
+            elseif FILTER =='Y'
+                % Saving the filtered data
+                pop_saveset(EEG,NewFileNamef)
+            end                  
+        end
+                            
+        %% REMOVING EVENTS (BASED ON TRIGGERS)
+      
+        % Removing the data recorded in between the beginning and end of
+        % each block
+        OUTEEG = EEG; Pos = 1; RegionsToDel = [];
+        AllEventsType = cell2mat({EEG.event.type});
+        AllEventsLat = cell2mat({EEG.event.latency});
+        for f=1:length(EEG.event)-1
+            if AllEventsType(f) == 255 && AllEventsType(f+1) == 254 % Should here depend on user inputs !!
+                RegionsToDel(Pos,1) = AllEventsLat(f);
+                 RegionsToDel(Pos,2) = AllEventsLat(f+1);
+                Pos = Pos + 1;
+            end
+        end
+        
+        % Reject the data regions
+        OUTEEG = eeg_eegrej(EEG, RegionsToDel);
+        
+        % Transform back all event types to integers
+        for f=1:length(OUTEEG.event) 
+            if ischar(OUTEEG.event(f).type) || isstring(OUTEEG.event(f).type)
+                OUTEEG.event(f).type=str2double(OUTEEG.event(f).type);
+            end
+        end   
+        
+        % Replacing the old EEG dataset by the new one that was truncated
+        EEG = OUTEEG;
+        
+        % DEBUGGING
+        % Visualise difference
+%         EEG = pop_eegfiltnew(EEG,'locutoff',low, 'hicutoff',high);
+%         OUTEEG = pop_eegfiltnew(OUTEEG,'locutoff',low, 'hicutoff',high);
+%         eegplot(OUTEEG.data,'data2',EEG.data,'events',EEG.event,'winlength',300)
+%         
+%         % Further tests (trying to see whether deletion happened correctly)
+%         Region = RegionsToDel(1,1)-1000:RegionsToDel(1,2)+1000;
+%         Temp = zeros(2,size(EEG.data(:,Region),2));
+%         Temp(1,:) = mean(EEG.data(:,Region),1);
+%         Temp(2,1:length(OUTEEG.data(:,Region))) = mean(OUTEEG.data(:,Region),1);
+
+%         % First modification occured at column 1001
+%         Position = find(Temp(1,:)==1.730386885339406);
+%         [Temp(1,Position:Position+100);Temp(2,1001:1101)]
+        
+        % The test indicates that the function is correct and only removed
+        % the regions of the file that were requested
+        
+        
+        %% Filtering
         if FILTER == 'Y'
             
             % Editing new channel location
@@ -593,7 +691,7 @@ for sbj = 1:numel(FileList)
                 EEG = pop_cleanline(EEG, 'SignalType','channels',...
                   'LineFrequencies', [ 50 100 ],'ComputeSpectralPower',false);
             end
-            
+               
             %% Artifact Subspace Reconstruction
             % ASR : Non-stationary artifacts removal
             if strcmpi(bool_ASR,'Y')
@@ -649,57 +747,6 @@ for sbj = 1:numel(FileList)
                 % Saving the filtered data
                 pop_saveset(EEG,NewFileNamef)
             end
-        end
-
-        %% Import mrk
-
-        % Boolean to act if catching error later on
-        mrkname_noerror = 1;
-
-        if ImportMRK == 'Y'
-
-            % opening the .mrk file and capturing its data (trigger type and latency)
-            filenameMRK = [mrk_folder SubPath '\' name_noe '.mrk'];
-            delimiter = '\t';
-            startRow = 2;
-            formatSpec = '%q%q%q%[^\n\r]';
-            fileID = fopen(filenameMRK,'r');
-            % Trying to scan the file, if it creates an error, we create a log
-            % and go to the next file
-            try
-                dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'HeaderLines' ,startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');                        
-                fclose(fileID);
-            catch
-                mrkname_noerror = 0;
-                count_error = count_error +1;
-                error_log(count_error+1,1) = {filenameMRK};
-            end
-
-            % If no name mismatching
-            if mrkname_noerror                        
-                % deleting the structure EEG.event
-                EEG = rmfield(EEG,{'event','urevent'});
-
-                % Creating the new EEG.event and EEG.urevent structures based on the .mrk data
-                for row = 1:length(dataArray{1})
-                    EEG.event(row).latency = str2num(cell2mat(dataArray{1}(row)))+Error_TF;
-                    EEG.event(row).type    = str2num(cell2mat(dataArray{3}(row)));
-                    EEG.urevent(row).latency = str2num(cell2mat(dataArray{1}(row)))+Error_TF;
-                    EEG.urevent(row).type    = str2num(cell2mat(dataArray{3}(row)));
-                    EEG.event(row).urevent = row;
-                end
-            end
-
-            % If the user doesn't intend to filter or epoch, save the .set now
-            if (FILTER ~='Y') && (Epoch ~='Y')
-                NewFileNameMRK = [save_folder SubPath '\' name_noe '_importmrk.set'];
-                pop_saveset(EEG,NewFileNameMRK)  
-
-            % if there is a filtering and mrk importation
-            elseif FILTER =='Y'
-                % Saving the filtered data
-                pop_saveset(EEG,NewFileNamef)
-            end                  
         end
 
         %% EPOCHING
