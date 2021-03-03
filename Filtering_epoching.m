@@ -38,7 +38,8 @@ p2 = p(1:I_p(end)-1);
 % Path of all needed functions
 % addpath(strcat(p2,'\Functions\bdfplugin'));
 addpath(strcat(p2,'\Functions\Functions'));
-addpath(strcat(p2,'\Functions\eeglab14_1_2b'));
+% addpath(strcat(p2,'\Functions\eeglab14_1_2b'));
+addpath(strcat(p2,'\Functions\eeglab2021.0'));
 
 
 % Ask what they want to do with their data (filtering / mrk importing / epoching)
@@ -516,7 +517,6 @@ for sbj = 1:numel(FileList)
     % Si on a des données dans le fichier, alors analyser
     if nnz(size(EEG.data,2))
     
-                    
         % Load channels location file
         EEG = pop_chanedit(EEG, 'load',{chanloc_path 'filetype' 'autodetect'});
         
@@ -524,9 +524,6 @@ for sbj = 1:numel(FileList)
         EEG = pop_reref(EEG,ref_chan);
         
         %% Detection of channels bridge (eBridge plugin)
-        %TEMP (fake data)
-%         EEG.data(34,:) = EEG.data(35,:);
-%         EEG.data(57,:) = EEG.data(58,:);
         if strcmpi(bool_eBridge,'Y')
             EB = eBridge(EEG,'PlotMode',0,'Verbose',0);
             if nnz(EB.Bridged.Count)
@@ -551,7 +548,7 @@ for sbj = 1:numel(FileList)
                         ChansToRej(m) = find(ismember({EEG.chanlocs.labels},ChansToRejLab{m}));
                     end
 
-                    % TEMPORARY STORAGE
+                    % Storage
                     AllChansToRej{sbj} = ChansToRej;
                 end
             end
@@ -625,6 +622,7 @@ for sbj = 1:numel(FileList)
       
         % Removing the data recorded in between the beginning and end of
         % each block
+        % THIS SHOULD BE IN THE USER GUI!
         OUTEEG = EEG; Pos = 1; RegionsToDel = [];
         AllEventsType = cell2mat({EEG.event.type});
         AllEventsLat = cell2mat({EEG.event.latency});
@@ -668,7 +666,6 @@ for sbj = 1:numel(FileList)
         % The test indicates that the function is correct and only removed
         % the regions of the file that were requested
         
-        
         %% Filtering
         if FILTER == 'Y'
             
@@ -696,7 +693,8 @@ for sbj = 1:numel(FileList)
             % ASR : Non-stationary artifacts removal
             if strcmpi(bool_ASR,'Y')
                 % https://sccn.ucsd.edu/wiki/Artifact_Subspace_Reconstruction_(ASR)#The_option_.27availableRAM_GB.27_is_available_to_fix_the_length_of_final_output
-                EEG = clean_rawdata(EEG, -1, -1, -1, -1, 10, -1,'availableRAM_GB',floor(hlp_memfree/1000000000));
+                % This issue was fixed in v.2.3: https://github.com/sccn/clean_rawdata/issues/15
+                EEG = clean_rawdata(EEG, -1, -1, -1, -1, 10, -1);
                 %% NEW (27.09.2019) --> TO DO !!! 
                 % The idea is to use the loaded resting-state files to use
                 % them to build the clean reference for ASR interpolation
