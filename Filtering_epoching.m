@@ -41,6 +41,10 @@ addpath(strcat(p2,'\Functions\Functions'));
 % addpath(strcat(p2,'\Functions\eeglab14_1_2b'));
 addpath(strcat(p2,'\Functions\eeglab2021.0'));
 
+% THIS IS A TEMPORARY FIX.
+% Openned an issue: https://github.com/sccn/cleanline/issues/3
+addpath(genpath('E:\GitHub\autoERP\Functions\eeglab2021.0\plugins\Cleanline2.00'))
+% rmpath(genpath('E:\GitHub\autoERP\Functions\eeglab2021.0\plugins\Cleanline2.00'))
 
 % Ask what they want to do with their data (filtering / mrk importing / epoching)
 answer = inputdlg({'Do you want to filter your data ? [Y/N]','Do you want to import .mrk ? [Y/N]',...
@@ -535,6 +539,7 @@ for sbj = 1:numel(FileList)
         
         if interpolation_ans == 'Y' % If you want to interpolate
             clear ChansToRej
+            AllChansToRej = cell(1,numel(FileList));
             Pos = find(ismember(InterpTable(:,1),name_noe));
             if ~isempty(InterpTable{Pos,2})
                 if isnumeric(InterpTable{Pos,2}) % If channels numbers
@@ -547,14 +552,13 @@ for sbj = 1:numel(FileList)
                     for m=1:length(ChansToRejLab) % Replace by numbers
                         ChansToRej(m) = find(ismember({EEG.chanlocs.labels},ChansToRejLab{m}));
                     end
-
-                    % Storage
-                    AllChansToRej{sbj} = ChansToRej;
                 end
+                % Storage
+                AllChansToRej{sbj} = ChansToRej;
             end
 
             % Reject chans
-            if exist('ChansToRej','var') && ~isempty(ChansToRej)
+            if ~isempty(AllChansToRej{sbj})
 
                 % Saving the bad channels data
                 EEG.BadChans.chanlocs = EEG.chanlocs; 
@@ -695,6 +699,7 @@ for sbj = 1:numel(FileList)
                 % https://sccn.ucsd.edu/wiki/Artifact_Subspace_Reconstruction_(ASR)#The_option_.27availableRAM_GB.27_is_available_to_fix_the_length_of_final_output
                 % This issue was fixed in v.2.3: https://github.com/sccn/clean_rawdata/issues/15
                 EEG = clean_rawdata(EEG, -1, -1, -1, -1, 10, -1);
+                
                 %% NEW (27.09.2019) --> TO DO !!! 
                 % The idea is to use the loaded resting-state files to use
                 % them to build the clean reference for ASR interpolation
