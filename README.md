@@ -57,7 +57,7 @@ At the end of the run, a file named Ntrials.xlsx is generated. It contains the n
 | [CleanLine v1.04](https://github.com/sccn/cleanline) | This plugin adaptively estimates and removes sinusoidal (e.g. line) noise from your ICA components or scalp channels using multi-tapering and a Thompson F-statistic |
 | [Clean_rawdata v2](https://github.com/sccn/clean_rawdata)| This plugin is used solely for the vis_artifacts.m function for the ICA script |
 |[ICLabel v1.1](https://github.com/sccn/ICLabel)|An automatic EEG independent component classifer plugin |
-|[EEGInterp](https://d-nb.info/1175873608/34)| Homemade function to compute multiquadratics interpolation based on radial basis function |
+|[EEGInterp](https://d-nb.info/1175873608/34)| Homemade function to compute multiquadric interpolation based on radial basis function |
 
 Isolated functions:
 * [saveeph](https://sites.google.com/site/cartoolcommunity/files)
