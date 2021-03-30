@@ -63,7 +63,8 @@ p2 = p(1:I_p(end)-1);
 % ---------- SET PATHS
 % Path of all needed functions
 addpath(strcat(p2,'\Functions\Functions'));
-addpath(strcat(p2,'\Functions\eeglab14_1_2b'));
+% addpath(strcat(p2,'\Functions\eeglab14_1_2b'));
+addpath(strcat(p2,'\Functions\eeglab2021.0'));
 addpath(genpath(strcat(p2,'\Functions\EEGInterp')));
 
 % ---------- PROMPTS
