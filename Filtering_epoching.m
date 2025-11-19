@@ -340,6 +340,7 @@ h = waitbar(0,{'Loading' , ['Progress: ' '0 /' num2str(numel(FileList))]});
 
 % Error counting
 count_error = 0;
+count_error_epoch = 0;
 i_load = 0;
 StoredRejectEpochs = cell(1,numel(FileList));
 Alltrials = cell(1,numel(FileList));
@@ -658,8 +659,19 @@ for sbj = 1:numel(FileList)
                 end
                 
                     
-                %% Epoching for real              
-                EEG = pop_epoch(EEG, toepoch, interval/1000);
+                %% Epoching for real   
+
+                % bool to stop the skip the process if not possible to epoch the data
+                epoch_success = 1; 
+                
+                % try epoching, append the error log if not possible
+                try
+                    EEG = pop_epoch(EEG, toepoch, interval/1000);
+                catch
+                    epoch_success = 0;
+                    count_error_epoch = count_error_epoch +1;
+                    error_log_epoch(count_error_epoch+1,1) = {filenameMRK};
+                end
                 
                 %% Last optionnal algorithms (BLINKER / Basecorr)
                 
@@ -667,7 +679,7 @@ for sbj = 1:numel(FileList)
                 
                 % This is only applied if stim duration provided
                 if any(cellfun(@(x) ~isempty(x),StimDuration)) && ...
-                    strcmpi(bool_Blinker,'Y')
+                    strcmpi(bool_Blinker,'Y') && epoch_success
 
                     % Rejecting epochs containing blinks inside the simulus
                     % duration window
@@ -730,8 +742,10 @@ for sbj = 1:numel(FileList)
 
                 end
 
-                %% save epoched .set
-                pop_saveset(EEG,NewFileNamee)
+                %% save epoched .set if epoch was done
+                if epoch_success
+                    pop_saveset(EEG,NewFileNamee)
+                end
             end
         end
     else
@@ -777,7 +791,7 @@ end
 % mrk importing success
 if ImportMRK == 'Y'
    fprintf(fid,'\r\n%s\r\n','------ .mrk importation ------');
-   fprintf(fid,'%s','The mrk files have been imported with success');
+   fprintf(fid,'\r\n%s','The mrk files have been imported with success');
    if nnz(count_error)
       fprintf(fid,'%s',[' except for ', num2str(count_error), ' file(s):']);
       fprintf(fid,'\t%s\r\n', error_log{:});
@@ -797,6 +811,15 @@ if Epoch == 'Y'
     fprintf(fid,'%s\r\n',['Files suffix: ',epoched_suffix]);
     fprintf(fid,'%s%s\r\n',['Epoching intervals in ms: ' mat2str(round(interval,3))],['; in TF: ', mat2str(intervalTF),' with a ', mat2str(sr),' sampling rate']);
     
+    fprintf(fid,'\r\n');
+    fprintf(fid,'%s','The files have been epoched with success');
+    if nnz(count_error_epoch)
+      fprintf(fid,'%s',[' except for ', num2str(count_error_epoch), ' file(s):']);
+      fprintf(fid,'\t%s\r\n', error_log_epoch{:});
+    else
+       fprintf(fid,'\r\n');
+    end
+
     if ~isempty(CondList)
         for cond = 1:length(CondList)
             if ~isempty(allnewtrigg{cond})
@@ -844,6 +867,16 @@ if nnz(count_error)
     opts = struct('WindowStyle','modal','Interpreter','tex');
     message = [{['\fontsize{12}' num2str(count_error) ' .mrk file(s) could not be opened.']};{'Check the log for potential name mismatchings.'}];
     warndlg(message,'.mrk Importation Error',opts)
+    
+end
+
+% if the number of no epoching is non-zero
+if nnz(count_error_epoch)
+   
+    % Display a warning message
+    opts = struct('WindowStyle','modal','Interpreter','tex');
+    message = [{['\fontsize{12}' num2str(count_error_epoch) ' file(s) could not be epoched']};{'Check the log to see if the files contained the desired triggers.'}];
+    warndlg(message,'Epoching Error',opts)
     
 end
 
